@@ -9,7 +9,7 @@ test -- Test suites, run by ScalaTest utility via ant script
 
 build.xml -- Ant script
 
----------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
 
 Use following commands to compile and test the project (in the project root directory):
 
@@ -25,7 +25,7 @@ ant jar           -- build an executable jar (Scala SDK included) and puts it in
 
 ant jar.no.scala  -- build an executable jar (without Scala SDK) and puts it into ./artifacts/
 
----------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
 
 How to run:
 
@@ -38,7 +38,7 @@ java -jar GenericCFAForScheme.jar [options] fileName
 -- for an executable jar with NO Scala SDK included
 scala -cp GenericCFAForScheme.jar org.ucombinator.scheme.cfa.RunCFA [options] fileName
 
----------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
 
 Implementation insights:
 
