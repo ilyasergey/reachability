@@ -1,0 +1,45 @@
+Project structure:
+-------------------
+
+lib -- necessary libraries: Scala SDK, compiler and ScalaTest
+
+src -- source files
+
+test -- Test suites, run by ScalaTest utility via ant script
+
+build.xml -- Ant script
+
+---------------------------------------------------------------------------------------
+
+Use following commands to compile and test the project (in the project root directory):
+
+ant all           -- compiles the project from scratch, builds the JAR file
+
+ant zip.project   -- Packs all source files into the ZIP archive artifacts/reachability.zip
+
+ant compile       -- compile the project (incrementally)
+
+ant run.tests     -- Run ScalaTest suite
+
+ant jar           -- build an executable jar (Scala SDK included) and puts it into ./artifacts/
+
+ant jar.no.scala  -- build an executable jar (without Scala SDK) and puts it into ./artifacts/
+
+---------------------------------------------------------------------------------------
+
+How to run:
+
+-- for a compiled project
+scala -cp ./out/production/reachability org.ucombinator.scheme.cfa.RunCFA [options] fileName
+
+-- for an executable jar with Scala SDK included
+java -jar GenericCFAForScheme.jar [options] fileName
+
+-- for an executable jar with NO Scala SDK included
+scala -cp GenericCFAForScheme.jar org.ucombinator.scheme.cfa.RunCFA [options] fileName
+
+---------------------------------------------------------------------------------------
+
+Implementation insights:
+
+Grep for the tag (REMARK) in the code for some non-obvious insights.

@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ CRAPL 2012.
+  ~ U Combinator, University of Utah
+  ~ DistriNet, KU Leuven
+  ~
+  ~ THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+  ~ APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+  ~ HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT
+  ~ WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT
+  ~ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  ~ A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND
+  ~ PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE
+  ~ DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR
+  ~ CORRECTION.
+  ~
+  ~ IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+  ~ WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR
+  ~ CONVEYS THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES,
+  ~ INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES
+  ~ ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT
+  ~ NOT LIMITED TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR
+  ~ LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM
+  ~ TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER
+  ~ PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+  ~
+  ~ If you have questions or concerns about the CRAPL, or you need more
+  ~ information about this license, please contact:
+  ~
+  ~    Matthew Might
+  ~    http://matt.might.net/
+  -->
+
+<project name="reachability" default="all">
+
+  <tstamp>
+    <format property="current.year" pattern="yyyy"/>
+  </tstamp>
+
+  <property name="jdk.home" value="${java.home}"/>
+  <!-- Uncomment the following property if no tests compilation is needed -->
+  <!--
+  <property name="skip.tests" value="true"/>
+   -->
+
+  <!-- Compiler options -->
+
+  <property name="compiler.debug" value="on"/>
+  <property name="compiler.generate.no.warnings" value="off"/>
+  <property name="compiler.args" value=""/>
+  <property name="compiler.max.memory" value="256m"/>
+  <patternset id="ignored.files">
+    <exclude name="**/CVS/**"/>
+    <exclude name="**/.DS_Store/**"/>
+    <exclude name="**/.svn/**"/>
+    <exclude name="**/.pyc/**"/>
+    <exclude name="**/.pyo/**"/>
+    <exclude name="**/*.pyc/**"/>
+    <exclude name="**/*.pyo/**"/>
+    <exclude name="**/.git/**"/>
+    <exclude name="**/_svn/**"/>
+  </patternset>
+  <patternset id="library.patterns">
+    <include name="*.zip"/>
+    <include name="*.war"/>
+    <include name="*.egg"/>
+    <include name="*.ear"/>
+    <include name="*.swc"/>
+    <include name="*.jar"/>
+  </patternset>
+  <patternset id="compiler.resources">
+    <include name="**/?*.properties"/>
+    <include name="**/?*.xml"/>
+    <include name="**/?*.gif"/>
+    <include name="**/?*.png"/>
+    <include name="**/?*.jpeg"/>
+    <include name="**/?*.jpg"/>
+    <include name="**/?*.html"/>
+    <include name="**/?*.dtd"/>
+    <include name="**/?*.tld"/>
+    <include name="**/?*.ftl"/>
+  </patternset>
+
+  <!-- JDK definitions -->
+
+  <property name="jdk.bin" value="${jdk.home}/bin"/>
+  <path id="jdk.classpath.1.6">
+    <!-- For Mac OS' Java SDK -->
+    <fileset dir="${jdk.home}">
+      <include name="../../1.6/Home/lib/deploy.jar"/>
+      <include name="../../1.6/Home/lib/dt.jar"/>
+      <include name="../../1.6/Home/lib/javaws.jar"/>
+      <include name="../../1.6/Home/lib/jce.jar"/>
+      <include name="../../1.6/Home/lib/plugin.jar"/>
+      <include name="../../1.6/Home/lib/sa-jdi.jar"/>
+      <include name="../../1.6/Home/../Classes/charsets.jar"/>
+      <include name="../../1.6/Home/../Classes/classes.jar"/>
+      <include name="../../1.6/Home/../Classes/dt.jar"/>
+      <include name="../../1.6/Home/../Classes/jce.jar"/>
+      <include name="../../1.6/Home/../Classes/jconsole.jar"/>
+      <include name="../../1.6/Home/../Classes/jsse.jar"/>
+      <include name="../../1.6/Home/../Classes/laf.jar"/>
+      <include name="../../1.6/Home/../Classes/ui.jar"/>
+      <include name="../../1.6/Home/lib/ext/apple_provider.jar"/>
+      <include name="../../1.6/Home/lib/ext/dnsns.jar"/>
+      <include name="../../1.6/Home/lib/ext/localedata.jar"/>
+      <include name="../../1.6/Home/lib/ext/sunjce_provider.jar"/>
+      <include name="../../1.6/Home/lib/ext/sunpkcs11.jar"/>
+    </fileset>
+
+    <!-- For Linux and Windows' Java SDK -->
+    <fileset dir="${jdk.home}/lib">
+      <include name="**/*.jar"/>
+    </fileset>
+  </path>
+
+  <property name="project.jdk.home" value="${jdk.home}"/>
+  <property name="project.jdk.bin" value="${jdk.bin}"/>
+  <property name="project.jdk.classpath" value="jdk.classpath.1.6"/>
+
+  <property name="artifacts.temp.dir" value="${basedir}/artifactsTemp"/>
+  <property name="artifacts.final.dir" value="${basedir}/artifacts"/>
+
+  <property name="benchmarks.dir" value="${basedir}/benchmarks/gcfa2"/>
+  <property name="project.jar.name" value="GenericCFAForScheme.jar"/>
+
+
+  <!-- Project Libraries -->
+
+  <path id="library.scala-sdk.classpath">
+    <pathelement location="${basedir}/lib/scala-compiler.jar"/>
+    <pathelement location="${basedir}/lib/scala-library.jar"/>
+  </path>
+
+  <path id="library.scalatest.classpath">
+    <pathelement location="${basedir}/lib/scalatest-1.7.1.jar"/>
+  </path>
+
+
+  <!-- Custom taskdefs -->
+  <property name="scalac.task.sdk" value="library.scala_sdk.classpath"/>
+  <taskdef resource="scala/tools/ant/antlib.xml">
+    <classpath refid="library.scala-sdk.classpath"/>
+  </taskdef>
+
+  <!-- Module reachability -->
+  <dirname property="module.reachability.basedir" file="${ant.file}"/>
+
+  <property name="module.jdk.home.reachability" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.reachability" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.reachability" value="${project.jdk.classpath}"/>
+
+  <property name="compiler.args.reachability" value="${compiler.args}"/>
+
+  <property name="reachability.output.dir"
+            value="${module.reachability.basedir}/out/production/reachability"/>
+  <property name="reachability.testoutput.dir"
+            value="${module.reachability.basedir}/out/test/reachability"/>
+
+  <path id="reachability.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+
+  <path id="reachability.module.classpath">
+    <path refid="${module.jdk.classpath.reachability}"/>
+    <path refid="library.scala-sdk.classpath"/>
+    <path refid="library.scalatest.classpath"/>
+  </path>
+
+  <path id="reachability.runtime.module.classpath">
+    <pathelement location="${reachability.output.dir}"/>
+    <pathelement location="${reachability.testoutput.dir}"/>
+    <path refid="library.scala-sdk.classpath"/>
+    <path refid="library.scalatest.classpath"/>
+  </path>
+
+
+  <patternset id="excluded.from.module.reachability">
+    <patternset refid="ignored.files"/>
+  </patternset>
+
+  <patternset id="excluded.from.compilation.reachability">
+    <patternset refid="excluded.from.module.reachability"/>
+  </patternset>
+
+  <path id="reachability.module.sourcepath">
+    <dirset dir="${module.reachability.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+
+  <path id="reachability.module.test.sourcepath">
+    <dirset dir="${module.reachability.basedir}">
+      <include name="test"/>
+    </dirset>
+  </path>
+
+
+  <target name="compile"
+          depends="compile.module.reachability.production,compile.module.reachability.test"
+          description="Compile module reachability"/>
+
+  <target name="compile.module.reachability.production"
+          description="Compile module reachability; production classes">
+    <mkdir dir="${reachability.output.dir}"/>
+    <scalac srcref="reachability.module.sourcepath"
+            destdir="${reachability.output.dir}"
+            scalacdebugging="true">
+      <classpath>
+        <path refid="reachability.module.classpath"/>
+        <pathelement location="${reachability.output.dir}"/>
+      </classpath>
+      <patternset refid="excluded.from.compilation.reachability"/>
+    </scalac>
+    <javac destdir="${reachability.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}"
+           memorymaximumsize="${compiler.max.memory}" fork="true"
+           executable="${module.jdk.bin.reachability}/javac">
+      <compilerarg line="${compiler.args.reachability}"/>
+      <bootclasspath refid="reachability.module.bootclasspath"/>
+      <classpath>
+        <pathelement location="${reachability.output.dir}"/>
+        <path refid="reachability.module.classpath"/>
+      </classpath>
+      <src refid="reachability.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.reachability"/>
+    </javac>
+
+    <copy todir="${reachability.output.dir}">
+      <fileset dir="${module.reachability.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+
+    <mkdir dir="${reachability.testoutput.dir}"/>
+    <scalac destdir="${reachability.testoutput.dir}">
+      <src refid="reachability.module.test.sourcepath"/>
+      <classpath>
+        <path refid="reachability.module.classpath"/>
+        <pathelement location="${reachability.output.dir}"/>
+      </classpath>
+      <patternset refid="excluded.from.compilation.reachability"/>
+    </scalac>
+    <javac destdir="${reachability.testoutput.dir}" debug="${compiler.debug}"
+           nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
+           executable="${module.jdk.bin.reachability}/javac">
+      <compilerarg line="${compiler.args.reachability}"/>
+      <bootclasspath refid="reachability.module.bootclasspath"/>
+      <classpath>
+        <pathelement location="${reachability.testoutput.dir}"/>
+        <path refid="reachability.module.classpath"/>
+        <pathelement location="${reachability.output.dir}"/>
+      </classpath>
+      <src refid="reachability.module.test.sourcepath"/>
+      <patternset refid="excluded.from.compilation.reachability"/>
+    </javac>
+  </target>
+
+  <target name="compile.module.reachability.test" depends="compile.module.reachability.production"
+          description="compile module reachability; test classes" unless="skip.tests">
+    <mkdir dir="${reachability.testoutput.dir}"/>
+
+    <copy todir="${reachability.testoutput.dir}">
+      <fileset dir="${module.reachability.basedir}/test">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <taskdef name="scalatest" classname="org.scalatest.tools.ScalaTestAntTask">
+    <classpath refid="library.scalatest.classpath"/>
+    <classpath refid="library.scala-sdk.classpath"/>
+    <classpath>
+      <pathelement location="${reachability.output.dir}"/>
+    </classpath>
+  </taskdef>
+
+  <target name="clean.module.reachability" description="cleanup module">
+    <delete dir="${reachability.output.dir}"/>
+    <delete dir="${reachability.testoutput.dir}"/>
+  </target>
+
+  <target name="clean" depends="clean.module.reachability" description="cleanup all"/>
+
+  <target name="init.artifacts">
+    <mkdir dir="${artifacts.temp.dir}"/>
+  </target>
+
+  <target name="all" depends="clean, compile, run.tests, zip.clean, jar"
+          description="build all and run tests"/>
+
+  <!-- #################################################-->
+  <!-- Tests -->
+  <!-- #################################################-->
+
+  <target name="run.tests" depends="compile.module.reachability.test">
+    <scalatest runpath="${reachability.testoutput.dir}"/>
+  </target>
+
+
+  <!-- #################################################-->
+  <!-- Zip project -->
+  <!-- #################################################-->
+
+  <target name="zip.clean" description="zip project with no IDE-specific stuff">
+    <mkdir dir="${artifacts.final.dir}"/>
+    <copy todir="${artifacts.temp.dir}">
+      <fileset dir="${module.reachability.basedir}">
+        <include name="lib/*"/>
+        <include name="benchmarks/**/*.scm"/>
+        <include name="src/**/*.scala"/>
+        <include name="src/**/*.java"/>
+        <include name="test/**/*.scala"/>
+        <include name="test/**/*.java"/>
+        <include name="testdata/**/*.scm"/>
+        <include name="**/*.scm"/>
+        <include name="**/Makefile"/>
+        <include name="build.xml"/>
+        <include name="README"/>
+        <include name="CRAPL-LICENSE.txt"/>
+      </fileset>
+    </copy>
+
+    <zip destfile="${artifacts.final.dir}/reachability.zip" basedir="${artifacts.temp.dir}"/>
+    <delete dir="${artifacts.temp.dir}"/>
+  </target>
+
+  <target name="zip.project" description="zip project">
+    <mkdir dir="${artifacts.final.dir}"/>
+    <copy todir="${artifacts.temp.dir}">
+      <fileset dir="${module.reachability.basedir}">
+        <include name="lib/*"/>
+        <include name="benchmarks/**/*.scm"/>
+        <include name="testdata/**/*.scm"/>
+        <include name="src/**/*.scala"/>
+        <include name="src/**/*.java"/>
+        <include name="test/**/*.scala"/>
+        <include name="test/**/*.java"/>
+        <include name="**/*.scm"/>
+        <include name="**/Makefile"/>
+        <include name="build.xml"/>
+        <include name="README"/>
+        <include name="CRAPL-LICENSE.txt"/>
+        <include name=".idea"/>
+        <include name="*.iml"/>
+        <include name=".classpath"/>
+        <include name=".project"/>
+        <!--<include name="*.eml"/>-->
+        <!--<include name="*.userlibraries"/>-->
+      </fileset>
+    </copy>
+
+    <zip destfile="${artifacts.final.dir}/reachability-all.zip" basedir="${artifacts.temp.dir}"/>
+    <delete dir="${artifacts.temp.dir}"/>
+  </target>
+
+  <!-- #################################################-->
+  <!-- Build project binaries for distribution -->
+  <!-- #################################################-->
+
+  <target name="jar" >
+    <mkdir dir="${artifacts.final.dir}"/>
+    <jar destfile="${artifacts.final.dir}/${project.jar.name}" basedir="${reachability.output.dir}" includes="**/*.class" excludes="test/**">
+      <!-- Include Scala SDK -->
+      <zipfileset includes="**/*.class" src="lib/scala-library.jar"/>
+      <zipfileset includes="**/*.class" src="lib/scala-compiler.jar"/>
+      <manifest>
+        <attribute name="Main-Class" value="org.ucombinator.scheme.cfa.RunCFA"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="jar.no.scala" depends="compile">
+    <mkdir dir="${artifacts.final.dir}"/>
+    <jar destfile="${artifacts.final.dir}/${project.jar.name}" basedir="${reachability.output.dir}" includes="**/*.class" excludes="test/**">
+      <manifest>
+        <attribute name="Main-Class" value="org.ucombinator.scheme.cfa.RunCFA"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <!-- #################################################-->
+  <!-- Building Dyck State Graphs -->
+  <!-- #################################################-->
+
+  <property name="cfa.runner" value="org.ucombinator.scheme.cfa.RunCFA"/>
+
+  <!-- Benchmark properties -->
+  <property name="arg.verbose" value="--verbose"/>
+  <property name="arg.dump.data" value="--dump-graph --simple-graph --dump-statistics"/>
+  <property name="arg.dummy" value="--dummy"/>
+  <property name="arg.1cfa" value="--k 1"/>
+  <property name="arg.gc" value="--gc"/>
+
+  <!-- Benchmark files -->
+  <property name="eta.source" value="${benchmarks.dir}/eta.scm"/>
+  <property name="double-loop.source" value="${benchmarks.dir}/double-loop.scm"/>
+  <property name="kcfa-worst-case.source" value="${benchmarks.dir}/kcfa-worst-case.scm"/>
+  <property name="kcfa-even-worse.source" value="${benchmarks.dir}/kcfa-even-worse.scm"/>
+  <property name="midtgaard-icfp09.source" value="${benchmarks.dir}/midtgaard-icfp09.scm"/>
+
+
+  <!-- Double-loop example -->
+  <target name="build.graph.double-loop.0cfa">
+    <java classname="${cfa.runner}">
+      <arg line="${arg.verbose} ${arg.dump.data} ${double-loop.source}"/>
+      <classpath refid="reachability.runtime.module.classpath"/>
+    </java>
+  </target>
+
+  <target name="build.graph.double-loop.0cfa.gc">
+    <java classname="${cfa.runner}">
+      <arg line="${arg.gc} ${arg.verbose} ${arg.dump.data} ${double-loop.source}"/>
+      <classpath refid="reachability.runtime.module.classpath"/>
+    </java>
+  </target>
+
+  <target name="build.graph.double-loop.1cfa">
+    <java classname="${cfa.runner}">
+      <arg line="${arg.verbose} ${arg.dump.data} ${arg.1cfa} ${double-loop.source}"/>
+      <classpath refid="reachability.runtime.module.classpath"/>
+    </java>
+  </target>
+
+  <target name="build.graph.double-loop.1cfa.gc">
+    <java classname="${cfa.runner}">
+      <arg line="${arg.gc} ${arg.verbose} ${arg.dump.data} ${arg.1cfa} ${double-loop.source}"/>
+      <classpath refid="reachability.runtime.module.classpath"/>
+    </java>
+  </target>
+
+  <target name="graphs.double-loop"
+          depends="
+          build.graph.double-loop.0cfa,
+          build.graph.double-loop.0cfa.gc,
+          build.graph.double-loop.1cfa,
+          build.graph.double-loop.1cfa.gc"/>
+
+
+  <!-- All graphs -->
+
+  <target name="build.graphs"
+          description="runs analysis and builds all DSG pictures"
+          depends="compile,
+          graphs.double-loop">
+  </target>
+
+
+  <!-- #################################################-->
+  <!-- Benchmarks -->
+  <!-- #################################################-->
+  <target name="run.benchmarks" depends="compile">
+    <!--TODO: implement me! -->
+  </target>
+
+
+</project>
