@@ -1,6 +1,8 @@
 Project structure:
 -------------------
 
+benchmarks -- a set of Scheme programs to test the analysis runner
+
 lib -- necessary libraries: Scala SDK, compiler and ScalaTest
 
 src -- source files
