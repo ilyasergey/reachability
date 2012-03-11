@@ -15,7 +15,7 @@ build.xml -- Ant script
 
 Use following commands to compile and test the project (in the project root directory):
 
-ant all           -- compiles the project from scratch, builds the JAR file
+ant all           -- compiles the project from scratch, builds the JAR file and zipped sources
 
 ant zip.project   -- Packs all source files into the ZIP archive artifacts/reachability.zip
 

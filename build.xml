@@ -123,7 +123,7 @@
 
   <property name="benchmarks.dir" value="${basedir}/benchmarks/gcfa2"/>
   <property name="project.jar.name" value="GenericCFAForScheme.jar"/>
-
+  <property name="project.jar.name.no.scala" value="GenericCFAForSchemeNoScala.jar"/>
 
   <!-- Project Libraries -->
 
@@ -287,7 +287,7 @@
     <mkdir dir="${artifacts.temp.dir}"/>
   </target>
 
-  <target name="all" depends="clean, compile, run.tests, zip.clean, jar"
+  <target name="all" depends="clean, compile, zip.clean, jar"
           description="build all and run tests"/>
 
   <!-- #################################################-->
@@ -373,7 +373,7 @@
 
   <target name="jar.no.scala" depends="compile">
     <mkdir dir="${artifacts.final.dir}"/>
-    <jar destfile="${artifacts.final.dir}/${project.jar.name}" basedir="${reachability.output.dir}" includes="**/*.class" excludes="test/**">
+    <jar destfile="${artifacts.final.dir}/${project.jar.name.no.scala}" basedir="${reachability.output.dir}" includes="**/*.class" excludes="test/**">
       <manifest>
         <attribute name="Main-Class" value="org.ucombinator.scheme.cfa.RunCFA"/>
       </manifest>
