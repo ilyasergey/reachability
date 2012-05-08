@@ -240,9 +240,11 @@ abstract class AnalysisRunner(opts: CFAOptions) extends StateSpace {
         }
       }
     } else state match {
-      case PState(e, rho, st, _) => {
-        (e.toString + "\\n" + " Env = " + rho.toString + "\\n" + "  store size = " +
-          st.values.flatMap(_.toList).size)
+      case p@PState(e, rho, st, k) => {
+        (e.toString +
+          "\\n" + " Env = " + rho.toString +
+          "\\n" + "  store hash = " + st.hashCode().toString +
+          "\\n" + k.toString)
       }
       case PFinal(v) => "Final(" + v.toString + ")"
       case ErrorState(_, _) => "ErrorState"

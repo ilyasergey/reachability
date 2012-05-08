@@ -109,7 +109,7 @@ with PDCFAGarbageCollector with IPDSMachinery with DSGMachinery with FancyOutput
     buffer.append("digraph BST {\nsize=\"6,4\" ; rankdir=LR;\n ")
 
     var list: List[String] = List()
-    for (Edge(s, g, s1) <- edges) {
+    for (Edge(s, g, s1) <- edges if s != s1) {
       val buf = new StringBuffer()
       buf.append("\"" + prettyPrintState(s, map) + "\"")
       buf.append(" -> ")

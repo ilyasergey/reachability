@@ -1,14 +1,9 @@
-(define (println s)
-  (display s)
-  (newline))
-
 (define (phi x1 x2 x3 x4)
   (and (or x1 (not x2) (not x3))
        (or (not x2) (not x3))
        (or x4 x2)))
 
 (define (try f)
-  (println "trying")
   (or (f #t) (f #f)))
 
 (define (sat-solve-4 p)
@@ -18,6 +13,5 @@
                        (try (lambda (n4)
                               (p n1 n2 n3 n4))))))))))
 
-                        
-(display (sat-solve-4 phi))
-(newline)
+
+(sat-solve-4 phi)
