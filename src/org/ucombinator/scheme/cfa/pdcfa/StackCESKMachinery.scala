@@ -79,6 +79,16 @@ trait StackCESKMachinery extends CESKMachinery {
         e = getLambdaBodyInANF(lam)
       } yield (PState(e, rho2, s1, kptr), k)
 
+
+//    case c@(PState(l@Let(_, _), rho, s, kptr), k)
+//      if (decomposeLetInANF(l)._2.isUnspecified) => {
+//      val (v, _, e) = decomposeLetInANF(l)
+//      val a = alloc(v, c)
+//      val rho1 = updateEnv(rho, List((v, a)))
+//      Set((PState(e, rho1, s, kptr), k))
+//    }
+
+
     case (PState(l@Let(_, _), rho, s, kptr), k) => {
       val (v, call, e) = decomposeLetInANF(l)
       Set((PState(call, rho, s, kptr), LetFrame(v, e, rho) :: k))
@@ -91,32 +101,6 @@ trait StackCESKMachinery extends CESKMachinery {
       val s1 = updateStore(s, List((a, atomicEval(ae, rho, s))))
       Set((PState(e, rho2, s1, kptr), k))
     }
-
-    /**************************************************************
-     * Real-world stuff
-     *************************************************************/
-
-
-    /*******************************************************
-     * Sequential composition
-     * TODO: prohibited!
-     ******************************************************/
-    /*
-        case c@(PState(b@Begin(Body(defs, exprs)), rho, s), k) => {
-          exprs.size match {
-            case 0 => throw new CESKException("No statements in begin statement")
-            case 1 => Set((PState(exprs.head, rho, s), k))
-            case _ => {
-              Set((PState(exprs.head, rho, s), SeqFrame(defs, exprs.tail, rho, b) :: k))
-            }
-          }
-        }
-        case c@(PState(ae, rho, s), SeqFrame(defs, ex, rho1, b) :: k)
-          if isAtomic(ae) => {
-          // just drop the value
-          Set((PState(Begin(Body(defs, ex)), rho1, s), k))
-        }
-    */
 
     /******************************************************
      * Conditional operator
@@ -139,12 +123,13 @@ trait StackCESKMachinery extends CESKMachinery {
     /******************************************************
      * Set!
      ******************************************************/
-    case c@(PState(SetVar(v, ae), rho, s, kptr), k)
+    // It is always the case that the stack is not empty
+    case c@(PState(SetVar(v, ae), rho, s, kptr), LetFrame(_, e, rho1) :: k)
       // Only atomic values are assigned
       if (isAtomic(ae)) => {
       val addr = lookupEnv(rho, v)
       val s1 = updateStore(s, List((addr, atomicEval(ae, rho, s))))
-      Set((PState(Unspecified(), rho, s1, kptr), k))
+      Set((PState(e, rho1, s1, kptr), k))
     }
 
 
@@ -152,7 +137,7 @@ trait StackCESKMachinery extends CESKMachinery {
      * Primitive applications
      ******************************************************/
     // only atomic values or variable are supported in primops
-    case c@(PState(app@App(p@Prim(primName, _), args), rho, s ,kptr), k) => {
+    case c@(PState(app@App(p@Prim(primName, _), args), rho, s, kptr), k) => {
       // map atomic arguments to values (sets)
       val arg_vals = args.args.map(ae => atomicEval(ae.exp, rho, s))
       for {
