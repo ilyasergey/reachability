@@ -32,13 +32,13 @@
 
 package org.ucombinator.scheme.cfa.kcfa
 
-import org.ucombinator.scheme.cfa.gc.GarbageCollector
+import org.ucombinator.scheme.cfa.gc.SchemeGarbageCollector
 
 /**
  * @author ilya
  */
 
-trait KCFAGarbageCollector extends GarbageCollector {
+trait KCFAGarbageCollector extends SchemeGarbageCollector {
   self: PointerCESKMachinery =>
 
   def rootAddr(c: ControlState, kstore: Kont): Set[Addr] = {

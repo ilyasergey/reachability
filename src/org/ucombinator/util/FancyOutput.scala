@@ -38,6 +38,17 @@ package org.ucombinator.util
 
 trait FancyOutput {
 
-  val isVerbose: Boolean
+  def isVerbose: Boolean
+
+  def progressPrefix: String
+
+  def shouldGC: Boolean
+
+  def printGCDebug: Boolean
+
+  def interrupt: Boolean
+
+  def interruptAfter: Int
+
 
 }

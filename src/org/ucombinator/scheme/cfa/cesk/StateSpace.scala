@@ -35,7 +35,7 @@ package org.ucombinator.scheme.cfa.cesk
 import scala.collection.immutable._
 
 import org.ucombinator.scheme.syntax._
-import math.BigInt._
+import org.ucombinator.dsg._
 
 
 /**
@@ -138,20 +138,6 @@ trait StateSpace extends PrimOperators {
 
   type Conf = (ControlState, Kont)
 
-  /********************************************************************
-   * Stack-action markers
-   ********************************************************************/
-  abstract sealed class StackAction
-
-  // Stack unchanged
-  case object Eps extends StackAction
-
-  // Push a frame
-  case class Push(frame: Frame) extends StackAction
-
-  // Pop a frame
-  case class Pop(frame: Frame) extends StackAction
-
   /**
    * Inject an expression into a program
    * @param e initial expression
@@ -163,15 +149,7 @@ trait StateSpace extends PrimOperators {
    * Utility functions
    ******************************************************/
 
-  object StackActionKind extends Enumeration {
-    type StackActionKind = Value
-    val Eps, Pop, Push = Value
-  }
-
-  import StackActionKind._
-
-
-  def kindOf(a: StackAction): StackActionKind = a match {
+  def kindOf(a: StackAction[_]): StackActionKind.Value = a match {
     case Eps => StackActionKind.Eps
     case Pop(_) => StackActionKind.Pop
     case Push(_) => StackActionKind.Push

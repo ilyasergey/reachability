@@ -38,6 +38,7 @@ import org.ucombinator.util._
 import org.ucombinator.scheme.syntax.{Exp, SName}
 import org.ucombinator.scheme.cfa.CFAStatistics
 import org.ucombinator.scheme.transform.ANormalizer
+import org.ucombinator.dsg.DSGMachinery
 
 
 /**
@@ -46,6 +47,12 @@ import org.ucombinator.scheme.transform.ANormalizer
 
 class PDCFAAnalysisRunner(opts: CFAOptions) extends AnalysisRunner(opts) with StackCESKMachinery
 with PDCFAGarbageCollector with IPDSMachinery with DSGMachinery with FancyOutput {
+
+  type Term = Exp
+
+  override type Kont = List[Frame]
+
+  def step(q: ControlState, k: Kont, frames: Kont) = stepIPDS(q, k, frames)
 
   def alloc(v: Var, c: Conf): Addr = c match {
     case (PState(e, _, _, _), _) =>
@@ -136,7 +143,7 @@ with PDCFAGarbageCollector with IPDSMachinery with DSGMachinery with FancyOutput
    * @param opts analysis options
    * @param anast inital expresion in ANF
    */
-  def runPDCFA(opts: CFAOptions, anast: Exp) {
+  def runPDCFA(opts: CFAOptions, anast: Term) {
     val sizeExp = ANormalizer.size(anast)
 
     val firstTime = (new java.util.Date()).getTime

@@ -41,7 +41,7 @@ import org.ucombinator.scheme.cfa.CFAStatistics
  * @author ilya
  */
 
-abstract class AnalysisRunner(opts: CFAOptions) extends StateSpace {
+abstract class AnalysisRunner(opts: CFAOptions) extends StateSpace with FancyOutput {
 
   def k = opts.k
 

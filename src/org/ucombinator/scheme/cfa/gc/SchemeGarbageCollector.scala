@@ -33,14 +33,13 @@
 package org.ucombinator.scheme.cfa.gc
 
 import org.ucombinator.scheme.cfa.cesk._
+import org.ucombinator.gc.GCInterface
 
 /**
  * @author ilya
  */
 
-trait GarbageCollector extends StateSpace {
-
-  def rootAddr(c: ControlState, frames: Kont): Set[Addr]
+trait SchemeGarbageCollector extends StateSpace with GCInterface {
 
   def gc(c: ControlState, frames: Kont): ControlState = c match {
     case ErrorState(_, _) | PFinal(_) => c
@@ -129,11 +128,5 @@ trait GarbageCollector extends StateSpace {
     }
   }
 
-  /**
-   * Define by a client
-   */
-  def shouldGC: Boolean
-
-  def printGCDebug: Boolean
 }
 

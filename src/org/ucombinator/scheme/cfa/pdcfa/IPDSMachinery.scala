@@ -33,6 +33,7 @@
 package org.ucombinator.scheme.cfa.pdcfa
 
 import org.ucombinator.scheme.cfa.cesk._
+import org.ucombinator.dsg._
 
 /**
  * Implementation of Introspective pushdown system
@@ -55,16 +56,15 @@ trait IPDSMachinery extends StateSpace with PDCFAGarbageCollector {
    * @param frames a set of possible frames in the stack at this state (for Garbage Collection)
    * @return a set of paired control states and stack actions
    */
-  def stepIPDS(q: Q, k: Kont, frames: Kont): Set[(StackAction, Q)] = {
+  def stepIPDS(q: Q, k: List[Frame], frames: List[Frame]): Set[(StackAction[Frame], Q)] = {
     val newQ: Q = (if (shouldGC) gc(q, frames) else q)
     for {
       (q1, k_new) <- mnext(newQ, k)
-      // TODO: implement GC using passed frames
       g = decideStackAction(k, k_new)
     } yield (g, q1)
   }
 
-  def decideStackAction(k1: Kont, k2: Kont): StackAction = (k1, k2) match {
+  def decideStackAction(k1: List[Frame], k2: List[Frame]): StackAction[Frame] = (k1, k2) match {
     case (x, y) if x == y => Eps
     case (h :: t1, t2) if t1 == t2 => Pop(h)
     case (t1, h :: t2) if t1 == t2 => Push(h)

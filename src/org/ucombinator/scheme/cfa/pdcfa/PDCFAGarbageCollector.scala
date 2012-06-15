@@ -32,16 +32,16 @@
 
 package org.ucombinator.scheme.cfa.pdcfa
 
-import org.ucombinator.scheme.cfa.gc.GarbageCollector
+import org.ucombinator.scheme.cfa.gc.SchemeGarbageCollector
 
 
 /**
  * @author ilya
  */
 
-trait PDCFAGarbageCollector extends GarbageCollector with StackCESKMachinery {
+trait PDCFAGarbageCollector extends SchemeGarbageCollector with StackCESKMachinery {
 
-  def rootAddr(c: ControlState, frames: Kont): Set[Addr] = {
+  def rootAddr(c: ControlState, frames: List[Frame]): Set[Addr] = {
     val envAddr: Set[Addr] = c match {
       case ErrorState(_, _) | PFinal(_) => Set.empty
       case PState(e, rho, s, kptr) => rho.values.toSet
