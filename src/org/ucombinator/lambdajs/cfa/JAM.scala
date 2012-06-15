@@ -87,7 +87,10 @@ trait JAM extends LJFrames with LJSyntax {
       case PR_REC_REF(RecValue(entries), sv) => {
         sv match {
           // Fetching any field of a record
-          case StringTop => entries.toSet.map((p: (StringValue, Value)) => (Eps, Cont(store, p._2)))
+          case StringTop => {
+            System.err.println("Alarm! StringTop is used as a reference for a record in state \n" + state)
+            entries.toSet.map((p: (StringValue, Value)) => (Eps, Cont(store, p._2)))
+          }
           // Fetching a particular field
           case s@StringValue(_) => entries.filter {
             // take exact matches and StringTops
