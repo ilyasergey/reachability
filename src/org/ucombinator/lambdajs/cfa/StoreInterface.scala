@@ -7,7 +7,7 @@ import org.ucombinator.lambdajs.syntax.LJSyntax
  */
 
 trait StoreInterface {
-  self : LJSyntax =>
+  self: LJSyntax =>
 
   type ControlState
 
@@ -21,9 +21,10 @@ trait StoreInterface {
 
   // utility
 
-//  def putMany[A, B](map: A :-> Set[B], keyVals: List[(A, Set[B])]): A :-> Set[B] = {
-//    keyVals.foldLeft(map) {case (result, (k, vs)) => }
-//  }
+  def putMany[A, B](map: A :-> Set[B], keyVals: List[(A, Set[B])]): A :-> Set[B] =
+    keyVals.foldLeft(map) {
+      case (result, (k, vs)) => put(result, k, vs)
+    }
 
   def put[A, B](map: A :-> Set[B], key: A, newVals: Set[B]): A :-> Set[B] = {
     val oldVals = map.getOrElse(key, Set())

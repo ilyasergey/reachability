@@ -20,7 +20,7 @@ trait LJFrames extends LJSyntax {
 
   case class ArgFrame(pre: List[Value], post: List[Closure]) extends Frame
 
-  case class RecFrame(pre: List[(Var, Value)], s: Var, post: List[(Var, Closure)]) extends Frame
+  case class RecFrame(pre: List[(StringValue, Value)], s: StringValue, post: List[(StringValue, Closure)]) extends Frame
 
   case class Lookup1Frame(index: Closure) extends Frame
 

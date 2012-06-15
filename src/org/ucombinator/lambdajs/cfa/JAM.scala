@@ -76,15 +76,32 @@ trait JAM extends LJFrames with LJSyntax {
         val a = alloc(state, x)
         withEps(Eval(put(store, a, Set(v)), GroundClo(e, rho + ((x, a)))))
       }
-//      case PR_APP(FunValue(Fun(xs, e), rho), vs) => if (xs.length == vs.length) {
-//        val as = xs.map(x => alloc(state, x))
-//        val rho1 = rho ++ xs.zip(as)
-//        withEps(Eval(put(store, a, v), GroundClo(e, rho1)))
-//
-//      } else {
-//        val msg = "Wrong number of arguments in the state\n" + state + "\nand a stack\n" + k
-//        Set((Eps, PError(msg)))
-//      }
+      case PR_APP(FunValue(Fun(xs, e, _), rho), vs) => if (xs.length == vs.length) {
+        val as = xs.map(x => alloc(state, x))
+        val rho1 = rho ++ xs.zip(as)
+        withEps(Eval(putMany(store, as.zip(vs.map(Set(_)))), GroundClo(e, rho1)))
+      } else {
+        val msg = "Wrong number of arguments in the state\n" + state + "\nand a stack\n" + k
+        Set((Eps, PError(msg)))
+      }
+      case PR_REC_REF(RecValue(entries), sv) => {
+        sv match {
+          // Fetching any field of a record
+          case StringTop => entries.toSet.map((p: (StringValue, Value)) => (Eps, Cont(store, p._2)))
+          // Fetching a particular field
+          case s@StringValue(_) => entries.filter {
+            // take exact matches and StringTops
+            case (si, _) => (si == s) || (si == StringTop)
+          } match {
+            // something is found
+            case l@(h :: _) => l.toSet.map((p: (StringValue, Value)) => (Eps, Cont(store, p._2)))
+            // nothing is found
+            case Nil => withEps(Cont(store, UndefValue))
+          }
+        }
+      }
+
+
 
 
       // todo implement the rest

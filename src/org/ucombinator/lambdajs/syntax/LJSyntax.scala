@@ -69,7 +69,7 @@ trait LJSyntax {
   /*
    * Other LambdaJS expressions
    */
-  case class Record(entries: List[(Var, Exp)]) extends Exp {
+  case class Record(entries: List[(StringValue, Exp)]) extends Exp {
     override def isValue = entries.foldLeft(true) {
       case (result, (s, v)) => result && v.isValue
     }
@@ -145,7 +145,7 @@ trait LJSyntax {
 
   case object NullValue extends Value
 
-  case class RecValue(entries: List[(Var, Value)]) extends Value
+  case class RecValue(entries: List[(StringValue, Value)]) extends Value
 
   case class FunValue(fun: Fun, env: Env) extends Value
 
@@ -157,7 +157,7 @@ trait LJSyntax {
 
   case class GroundClo(e: Exp, env: Env) extends Closure
 
-  case class RecordClo(entries: List[(Var, Closure)]) extends Closure
+  case class RecordClo(entries: List[(StringValue, Closure)]) extends Closure
 
   case class LetClo(x: Var, rhs: Closure, body: Closure) extends Closure
 
@@ -207,11 +207,11 @@ trait LJSyntax {
 
   case class PR_LET(x: Var, v: Value, clo: Closure) extends PotentialRedex
 
-  case class PR_REC_REF(v: Value, v2: Value) extends PotentialRedex
+  case class PR_REC_REF(v: Value, s: AbstractStringValue) extends PotentialRedex
 
-  case class PR_REC_SET(v: Value, v1: Value, v2: Value) extends PotentialRedex
+  case class PR_REC_SET(v: Value, s: AbstractStringValue, v2: Value) extends PotentialRedex
 
-  case class PR_REC_DEL(v: Value, v2: Value) extends PotentialRedex
+  case class PR_REC_DEL(v: Value, s: AbstractStringValue) extends PotentialRedex
 
   case class PR_IF(v: Value, tb: Exp, eb: Exp, e: Env) extends PotentialRedex
 
