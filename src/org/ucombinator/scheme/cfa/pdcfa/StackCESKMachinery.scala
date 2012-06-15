@@ -80,13 +80,13 @@ trait StackCESKMachinery extends CESKMachinery {
       } yield (PState(e, rho2, s1, kptr), k)
 
 
-//    case c@(PState(l@Let(_, _), rho, s, kptr), k)
-//      if (decomposeLetInANF(l)._2.isUnspecified) => {
-//      val (v, _, e) = decomposeLetInANF(l)
-//      val a = alloc(v, c)
-//      val rho1 = updateEnv(rho, List((v, a)))
-//      Set((PState(e, rho1, s, kptr), k))
-//    }
+    //    case c@(PState(l@Let(_, _), rho, s, kptr), k)
+    //      if (decomposeLetInANF(l)._2.isUnspecified) => {
+    //      val (v, _, e) = decomposeLetInANF(l)
+    //      val a = alloc(v, c)
+    //      val rho1 = updateEnv(rho, List((v, a)))
+    //      Set((PState(e, rho1, s, kptr), k))
+    //    }
 
 
     case (PState(l@Let(_, _), rho, s, kptr), k) => {
@@ -140,18 +140,10 @@ trait StackCESKMachinery extends CESKMachinery {
     case c@(PState(app@App(p@Prim(primName, _), args), rho, s, kptr), k) => {
       // map atomic arguments to values (sets)
       val arg_vals = args.args.map(ae => atomicEval(ae.exp, rho, s))
+      val setOfLists = toSetOfLists(arg_vals)
       for {
-        results <- arg_vals.size match {
-          case 0 => Set(evalPrimApp(primName, List()))
-          case 1 => for {a <- arg_vals.head} yield evalPrimApp(primName, List(a))
-          case 2 => for {
-            a <- arg_vals.head
-            b <- arg_vals.tail.head
-          } yield evalPrimApp(primName, List(a, b))
-          case n => {
-            throw new StackCESKException("Primitive functions of arity " + n + " are not supported:\n" + app.toString)
-          }
-        }
+        arg_vector <- setOfLists
+        results = evalPrimApp(primName, arg_vector)
         result <- results
         state = analyseResult(result, rho, s, app, kptr)
       } yield (state, k)

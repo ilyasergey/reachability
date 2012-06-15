@@ -106,7 +106,7 @@ with PDCFAGarbageCollector with IPDSMachinery with DSGMachinery with FancyOutput
     }).toMap
 
     val buffer = new StringBuffer
-    buffer.append("digraph BST {\nsize=\"6,4\" ; rankdir=LR;\n ")
+    buffer.append("digraph BST {\nsize=\"6,4\" \n ")
 
     var list: List[String] = List()
     for (Edge(s, g, s1) <- edges if s != s1) {
