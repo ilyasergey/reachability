@@ -96,13 +96,13 @@ trait StateSpace extends PrimOperators {
 
   case object BadVal extends Val
 
-  case class BoolLit(b: Boolean) extends Val
-
   case class QuotedLit(v: SExp) extends Val
 
   case class StringLit(s: String) extends Val
 
   case class PairLit(left: Val, right: Val) extends Val
+
+  case class BoolLit(b: Boolean) extends Val
 
   abstract class AbstractNumLit extends Val
 
