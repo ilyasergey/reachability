@@ -88,8 +88,9 @@ trait JAM extends LJFrames with LJSyntax {
         sv match {
           // Fetching any field of a record
           case StringTop => {
-            System.err.println("Alarm! StringTop is used as a reference for a record in state \n" + state)
-            entries.toSet.map((p: (StringValue, Value)) => (Eps, Cont(store, p._2)))
+            val msg = "Alarm! StringTop is used as a reference for a record in state \n" + state
+            System.err.println(msg)
+            Set((Eps, PError(msg)))
           }
           // Fetching a particular field
           case s@StringValue(_) => entries.filter {
@@ -103,6 +104,49 @@ trait JAM extends LJFrames with LJSyntax {
           }
         }
       }
+      case PR_REC_SET(RecValue(entries), sv, rhs) => {
+        sv match {
+          // Fetching any field of a record
+          case StringTop => {
+            val msg = "Alarm! StringTop is used as a reference for record update in state \n" + state
+            System.err.println(msg)
+            Set((Eps, PError(msg)))
+          }
+          // Fetching a particular field
+          case s@StringValue(_) => {
+            val newEntries = (s, rhs) :: entries.filter {
+              case (si, _) => (si != s)
+            }
+            withEps(Cont(store, RecValue(newEntries)))
+          }
+        }
+      }
+      case PR_REC_DEL(RecValue(entries), sv) => {
+        sv match {
+          // Fetching any field of a record
+          case StringTop => {
+            val msg = "Alarm! StringTop is used as a reference for record delete in state \n" + state
+            System.err.println(msg)
+            Set((Eps, PError(msg)))
+          }
+          // Fetching a particular field
+          case s@StringValue(_) => {
+            val newEntries = entries.filter {
+              case (si, _) => (si != s)
+            }
+            withEps(Cont(store, RecValue(newEntries)))
+          }
+        }
+      }
+      case PR_IF(c, tb, eb, rho) => c match {
+        case BoolValue(true) => withEps(Eval(store, GroundClo(tb, rho)))
+        case BoolValue(false) => withEps(Eval(store, GroundClo(eb, rho)))
+        case _ => Set(
+          (Eps, Eval(store, GroundClo(tb, rho))),
+          (Eps, Eval(store, GroundClo(eb, rho))))
+      }
+
+
 
 
 
