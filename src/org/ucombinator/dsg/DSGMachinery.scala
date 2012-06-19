@@ -30,6 +30,8 @@ trait DSGMachinery {
 
   def canHaveEmptyContinuation(s: ControlState): Boolean
 
+  def canHaveSwitchFrames: Boolean
+
   //////////////////////////////////////////////////////////////////////////////////////////
 
   /**
@@ -69,7 +71,10 @@ trait DSGMachinery {
 
       val (obtainedStates, obtainedEdges) = newNodesAndEdges.unzip
 
-      val newEdges = obtainedEdges -- ee
+      // Transform switch edges to pairs of pus/pop edges
+      val noSwitches: Edges = if (canHaveSwitchFrames) processSwitchEdges(obtainedEdges) else obtainedEdges
+
+      val newEdges = noSwitches -- ee
       //val newHelper = updateHelper(helper, newEdges, ee)
       helper.update(newEdges)
 
@@ -137,6 +142,7 @@ trait DSGMachinery {
           case Edge(s1, Eps, s2) => equalize(s1, s2)
           case Edge(s1, Pop(f), s2) => processPop(s1, f, s2)
           case Edge(s1, Push(f), s2) => processPush(s1, f, s2)
+          case Edge(_, se@Switch(_, _, _), _) => throw new DSGException("Illegal switch edge: " + se)
         }
       }
     }
@@ -286,6 +292,14 @@ trait DSGMachinery {
    */
   def stackActionsEquivalent(g1: Frame, g: Frame): Boolean = {
     g1 == g
+  }
+
+  private def processSwitchEdges(edges: Edges): Edges = edges.flatMap {
+    case Edge(source, Switch(popped, mid: S, pushed), target) => Set(
+      Edge(source, Pop(popped), mid),
+      Edge(mid, Push(pushed), target)
+    )
+    case e => Set(e)
   }
 
 }

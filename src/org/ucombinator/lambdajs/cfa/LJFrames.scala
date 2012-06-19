@@ -18,7 +18,7 @@ trait LJFrames extends LJSyntax {
 
   case class AppFrame(args: List[Closure]) extends Frame
 
-  case class ArgFrame(pre: List[Value], post: List[Closure]) extends Frame
+  case class ArgFrame(fun: Value, pre: List[Value], post: List[Closure]) extends Frame
 
   case class RecFrame(pre: List[(StringValue, Value)], s: StringValue, post: List[(StringValue, Closure)]) extends Frame
 

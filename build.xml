@@ -122,8 +122,8 @@
   <property name="artifacts.final.dir" value="${basedir}/artifacts"/>
 
   <property name="benchmarks.dir" value="${basedir}/benchmarks/gcfa2"/>
-  <property name="project.jar.name" value="GenericCFAForScheme.jar"/>
-  <property name="project.jar.name.no.scala" value="GenericCFAForSchemeNoScala.jar"/>
+  <property name="project.jar.name" value="GenericCFA.jar"/>
+  <property name="project.jar.name.no.scala" value="GenericCFANoScala.jar"/>
 
   <!-- Project Libraries -->
 
@@ -366,7 +366,7 @@
       <zipfileset includes="**/*.class" src="lib/scala-library.jar"/>
       <zipfileset includes="**/*.class" src="lib/scala-compiler.jar"/>
       <manifest>
-        <attribute name="Main-Class" value="org.ucombinator.scheme.cfa.RunCFA"/>
+        <attribute name="Main-Class" value="org.ucombinator.cfa.RunCFA"/>
       </manifest>
     </jar>
   </target>
@@ -375,7 +375,7 @@
     <mkdir dir="${artifacts.final.dir}"/>
     <jar destfile="${artifacts.final.dir}/${project.jar.name.no.scala}" basedir="${reachability.output.dir}" includes="**/*.class" excludes="test/**">
       <manifest>
-        <attribute name="Main-Class" value="org.ucombinator.scheme.cfa.RunCFA"/>
+        <attribute name="Main-Class" value="org.ucombinator.cfa.RunCFA"/>
       </manifest>
     </jar>
   </target>
@@ -384,7 +384,7 @@
   <!-- Building Dyck State Graphs -->
   <!-- #################################################-->
 
-  <property name="cfa.runner" value="org.ucombinator.scheme.cfa.RunCFA"/>
+  <property name="cfa.runner" value="org.ucombinator.cfa.RunCFA"/>
 
   <!-- Benchmark properties -->
   <property name="arg.verbose" value="--verbose"/>

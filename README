@@ -32,13 +32,13 @@ ant jar.no.scala  -- build an executable jar (without Scala SDK) and puts it int
 How to run:
 
 -- for a compiled project
-scala -cp ./out/production/reachability org.ucombinator.scheme.cfa.RunCFA [options] fileName
+scala -cp ./out/production/reachability org.ucombinator.cfa.RunCFA [options] fileName
 
 -- for an executable jar with Scala SDK included
-java -jar GenericCFAForScheme.jar [options] fileName
+java -jar GenericCFA.jar [options] fileName
 
 -- for an executable jar with NO Scala SDK included
-scala -cp GenericCFAForScheme.jar org.ucombinator.scheme.cfa.RunCFA [options] fileName
+scala -cp GenericCFA.jar org.ucombinator.scheme.cfa.RunCFA [options] fileName
 
 ------------------------------------------------------------------------------------
 

@@ -58,6 +58,7 @@ class CFAOptions {
   var gc = false
   var gcDebug = false
   var dumpGraph = false
+  var lang = "scheme"
 
   var interrupt = false
   var interruptAfter = 0
@@ -71,6 +72,14 @@ object CFAOptions {
       case List() => {}
       case "--k" :: k :: rest => {
         opts.k = Integer.parseInt(k)
+        parse(rest, opts)
+      }
+
+      case "--lang" :: lan :: rest => {
+        lan match {
+          case "js" => opts.lang = "js"
+          case _ => opts.lang = "scheme"
+        }
         parse(rest, opts)
       }
 

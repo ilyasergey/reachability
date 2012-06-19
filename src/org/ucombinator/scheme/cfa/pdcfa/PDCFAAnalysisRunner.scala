@@ -52,6 +52,8 @@ with PDCFAGarbageCollector with IPDSMachinery with DSGMachinery with FancyOutput
 
   override type Kont = List[Frame]
 
+  def canHaveSwitchFrames = false
+
   def step(q: ControlState, k: Kont, frames: Kont) = stepIPDS(q, k, frames)
 
   def alloc(v: Var, c: Conf): Addr = c match {

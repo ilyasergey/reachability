@@ -1,3 +1,5 @@
+package org.ucombinator.cfa
+
 /*
  * CRAPL 2012.
  * U Combinator, University of Utah
@@ -30,8 +32,6 @@
  *    http://matt.might.net/
  */
 
-package org.ucombinator.scheme.cfa
-
 import org.ucombinator.scheme.syntax._
 import org.ucombinator.scheme.transform.ANormalizer
 import org.ucombinator.scheme.parsing.RnRSParser
@@ -42,25 +42,25 @@ import AnalysisType._
 
 /**
  * @author ilya
- *
- * Standard DSG Runner class
- * Takes a parameter k for polyvariance
  */
 
 object RunCFA {
 
-  val version: String = "20120310"
+  val version: String = "20120619"
   val versionString: String = "    Version " + version + "\n"
 
-  val helpMessage = ("  GenericCFAForScheme - a runner for k-CFA and Push-down k-CFA with optional Abstract Garbage Collection \n" +
+  val helpMessage = (" GenericCFA - a runner for k-CFA and Push-down k-CFA with optional Abstract Garbage Collection \n" +
     versionString +
     """
     Usage (for a prebuilt jar with Scala SDK included):
 
-    java -jar GenericCFAForScheme.jar [--pdcfa | --kcfa] [--k k] [--gc] [--verbose] [--dump-graph] [--dump-statistics] [--simple-graph] [--interrupt-after n] [--help] filePath
+    java -jar GenericCFA.jar [--lang lang][--pdcfa | --kcfa] [--k k] [--gc] [--verbose] [--dump-graph] [--dump-statistics] [--simple-graph] [--interrupt-after n] [--help] filePath
 
     where
 
+    --lang                 Target language (default = scheme)
+                             js        -- LambdaJS
+                             scheme    -- Scheme
     --pdcfa                run Pushdown k-CFA (run by default)
     --kcfa                 run classic k-CFA
     --k k                  "k-degree" of the analysis, by default k = 0, only k = 0,1 are supported so far
@@ -89,8 +89,23 @@ object RunCFA {
       System.err.println("Please, specify a filename to process")
       println()
       println(helpMessage)
-      return
     }
+
+
+    if (opts.lang == "js") {
+      processJS(opts)
+    }
+    else {
+      processScheme(opts)
+    }
+  }
+
+  def processJS(opts: CFAOptions) {
+    // todo implement me
+  }
+
+
+  def processScheme(opts: CFAOptions) {
 
     val filename = opts.fileName
     if (opts.verbose) {
@@ -137,7 +152,6 @@ object RunCFA {
         runner.runKCFA(opts, anast)
       }
     }
-
   }
 
 }

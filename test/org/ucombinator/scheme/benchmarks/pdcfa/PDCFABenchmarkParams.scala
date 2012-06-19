@@ -32,7 +32,7 @@
 
 package org.ucombinator.scheme.benchmarks.pdcfa
 
-import org.ucombinator.scheme.cfa.RunCFA
+import org.ucombinator.cfa.RunCFA
 
 /**
  * @author ilya

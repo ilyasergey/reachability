@@ -27,6 +27,9 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
 
   case class PError(m: String) extends PState
 
+  // An administrative state for immediate pop/push
+  case class PSwitch(s1: PState, s2: PState, popped: Frame, pushed: Frame) extends PState
+
   ///////////////////////////////////////////////////////////////////////
 
   type Kont = List[Frame]
@@ -218,12 +221,28 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
 
     case Cont(store, v) => k match {
       case Nil => withEps(PFinal(v, store))
-      case LetFrame(x, c) :: _ => withEps(Apply(store, PR_LET(x, v, c)))
+      case head :: _ => head match {
+        case LetFrame(x, c) => withEps(Apply(store, PR_LET(x, v, c)))
+
+        case AppFrame(Nil) => withEps(Apply(store, PR_APP(v, Nil)))
+        case pop@AppFrame(c :: cx) => {
+          val push = ArgFrame(v, Nil, cx)
+          withSwitch(state, Eval(store, c), pop, push)
+        }
+
+        case pop@ArgFrame(t, ux, Nil) => withPop(Apply(store, PR_APP(t, ux ++ List(v))), pop)
+        case pop@ArgFrame(t, ux, c :: cx) => {
+          val push = ArgFrame(t, ux ++ List(v), cx)
+          withSwitch(state, Eval(store, c), pop, push)
+
+        }
 
 
-      case _ => {
-        val msg = "No transition for cont-state \n" + state + "\nand a stack\n" + k
-        Set((Eps, PError(msg)))
+        case _ => {
+          val msg = "No transition for cont-state \n" + state + "\nand a stack\n" + k
+          Set((Eps, PError(msg)))
+        }
+
       }
     }
 
@@ -238,6 +257,12 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
   private def withPush(pst: PState, f: Frame): Set[(StackAction[Frame], ControlState)] = Set((Push(f), pst))
 
   private def withPop(pst: PState, f: Frame): Set[(StackAction[Frame], ControlState)] = Set((Pop(f), pst))
+
+  private def withSwitch(s1: PState, s2: PState, popped: Frame, pushed: Frame): Set[(StackAction[Frame], ControlState)] = {
+    val swapState = PSwitch(s1, s2, popped, pushed)
+    val frame = Switch(popped, swapState, pushed)
+    Set((frame, swapState))
+  }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////
 

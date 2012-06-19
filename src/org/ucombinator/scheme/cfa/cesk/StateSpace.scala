@@ -153,6 +153,7 @@ trait StateSpace extends PrimOperators {
     case Eps => StackActionKind.Eps
     case Pop(_) => StackActionKind.Pop
     case Push(_) => StackActionKind.Push
+    case Switch(_, _, _) => throw new SemanticException("No switch edges allowed here.")
   }
 
   def lookupStore(s: Store, a: Addr): Set[Val] = s.get(a) match {

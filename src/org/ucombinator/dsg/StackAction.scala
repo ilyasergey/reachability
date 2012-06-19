@@ -18,6 +18,9 @@ case class Push[F](frame: F) extends StackAction[F]
 // Pop a frame
 case class Pop[F](frame: F) extends StackAction[F]
 
+// Pop one frame, push another one
+case class Switch[F, S](popped: F, state: S, pushed: F) extends StackAction[F]
+
 object StackActionKind extends Enumeration {
   type StackActionKind = Value
   val Eps, Pop, Push = Value
