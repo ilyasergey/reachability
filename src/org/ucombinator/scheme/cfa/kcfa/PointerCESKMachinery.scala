@@ -34,7 +34,8 @@ package org.ucombinator.scheme.cfa.kcfa
 
 import org.ucombinator.scheme.syntax._
 import org.ucombinator.util.FancyOutput
-import org.ucombinator.scheme.cfa.cesk.{AnalysisRunner, CESKMachinery}
+import org.ucombinator.cfa.AnalysisRunner
+import org.ucombinator.scheme.cfa.cesk.CESKMachinery
 
 /**
  * @author ilya

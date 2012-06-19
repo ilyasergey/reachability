@@ -1,3 +1,5 @@
+package org.ucombinator.cfa
+
 /*
  * CRAPL 2012.
  * U Combinator, University of Utah
@@ -30,8 +32,6 @@
  *    http://matt.might.net/
  */
 
-package org.ucombinator.scheme.cfa
-
 /**
  * @author ilya
  */
@@ -40,7 +40,7 @@ case class CFAStatistics(timeSec: Long,
                          numExp: Int,
                          numVars: Int,
                          numSingletons: Int,
-                         numStates : Int,
-                         numEdges : Int,
+                         numStates: Int,
+                         numEdges: Int,
                          interrupted: Boolean)
 

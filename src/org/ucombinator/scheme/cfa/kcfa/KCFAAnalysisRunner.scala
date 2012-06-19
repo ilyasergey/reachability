@@ -32,18 +32,18 @@
 
 package org.ucombinator.scheme.cfa.kcfa
 
-import org.ucombinator.scheme.cfa.cesk.AnalysisRunner
 import org.ucombinator.scheme.syntax._
 import tools.nsc.io.Directory
-import org.ucombinator.scheme.cfa.CFAStatistics
 import org.ucombinator.util._
 import org.ucombinator.scheme.transform.ANormalizer
+import org.ucombinator.scheme.cfa.SchemeCFARunner
+import org.ucombinator.cfa.CFAStatistics
 
 /**
  * @author ilya
  */
 
-class KCFAAnalysisRunner(opts: CFAOptions) extends AnalysisRunner(opts) with PointerCESKMachinery with KCFAGarbageCollector
+class KCFAAnalysisRunner(opts: CFAOptions) extends SchemeCFARunner(opts) with PointerCESKMachinery with KCFAGarbageCollector
 with FancyOutput {
 
   def runKCFA(opts: CFAOptions, anast: Exp) {
