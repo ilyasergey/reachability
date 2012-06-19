@@ -32,7 +32,6 @@ package org.ucombinator.cfa
  *    http://matt.might.net/
  */
 
-import org.ucombinator.scheme.syntax._
 import org.ucombinator.scheme.transform.ANormalizer
 import org.ucombinator.scheme.parsing.RnRSParser
 import org.ucombinator.util._
@@ -101,6 +100,8 @@ object RunCFA {
 
   def processJS(opts: CFAOptions) {
 
+    import org.ucombinator.lambdajs.syntax.LJSyntax._
+
     opts.analysisType match {
       case KCFA => {
         println("Standard k-CFA for LambdaJS is not supported")
@@ -115,7 +116,7 @@ object RunCFA {
         }
 
         // todo implement me!
-        val program: runner.Exp = null
+        val program: Exp = null
         //    val program = SExp.parseAllIn(filename)
 
         if (opts.verbose) {
@@ -133,6 +134,8 @@ object RunCFA {
 
 
   def processScheme(opts: CFAOptions) {
+
+    import org.ucombinator.scheme.syntax._
 
     val filename = opts.fileName
     if (opts.verbose) {
