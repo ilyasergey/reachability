@@ -58,7 +58,7 @@ object RunCFA {
 
     where
 
-    --lang                 Target language (default = scheme)
+    --lang lang            Target language (default = scheme)
                              js        -- LambdaJS
                              scheme    -- Scheme
     --pdcfa                run Pushdown k-CFA (run by default)
@@ -91,16 +91,24 @@ object RunCFA {
       println(helpMessage)
     }
 
-
     if (opts.lang == "js") {
       processJS(opts)
-    }
-    else {
+    } else {
       processScheme(opts)
     }
   }
 
   def processJS(opts: CFAOptions) {
+    opts.analysisType match {
+      case KCFA => {
+        println("Standard k-CFA for LambdaJS is not supported")
+        return
+      }
+      case PDCFA => {
+        /*proceed*/
+      }
+    }
+
     // todo implement me
   }
 
