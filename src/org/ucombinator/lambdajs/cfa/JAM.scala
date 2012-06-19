@@ -38,8 +38,8 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
 
   def step(state: ControlState, k: Kont, frames: Kont): Set[(StackAction[Frame], ControlState)] = state match {
 
-    // Error state
-    case PError(_) => Set()
+    // Administrative states
+    case PError(_) | PFinal(_, _) | PSwitch(_, _, _, _) => Set()
 
     // Eval states
     case Eval(store, clo) => clo match {
@@ -143,12 +143,12 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
         }
       }
 
-      case PR_IF(c, tb, eb, rho) => c match {
-        case BoolValue(true) => withEps(Eval(store, GroundClo(tb, rho)))
-        case BoolValue(false) => withEps(Eval(store, GroundClo(eb, rho)))
+      case PR_IF(c, tc, ec) => c match {
+        case BoolValue(true) => withEps(Eval(store, tc))
+        case BoolValue(false) => withEps(Eval(store, ec))
         case _ => Set(
-          (Eps, Eval(store, GroundClo(tb, rho))),
-          (Eps, Eval(store, GroundClo(eb, rho))))
+          (Eps, Eval(store, tc)),
+          (Eps, Eval(store, ec)))
       }
 
       case PR_OP(op, values) => withEps(Cont(store, delta(op, values)))
@@ -221,6 +221,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
 
     case Cont(store, v) => k match {
       case Nil => withEps(PFinal(v, store))
+
       case head :: _ => head match {
         case LetFrame(x, c) => withEps(Apply(store, PR_LET(x, v, c)))
 
@@ -237,17 +238,77 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
 
         }
 
+        case pop@RecFrame(us, sn, Nil) => withPop(Cont(store, RecValue(us ++ List((sn, v)))), pop)
+        case pop@RecFrame(us, si, (si1, c) :: cs) => {
+          val push = RecFrame(us ++ List((si, v)), si1, cs)
+          withSwitch(state, Eval(store, c), pop, push)
+        }
+
+        case pop@Lookup1Frame(c) => {
+          val push = Lookup2Frame(v)
+          withSwitch(state, Eval(store, c), pop, push)
+        }
+        case pop@Lookup2Frame(u) if v.isInstanceOf[AbstractStringValue] => {
+          withPop(Apply(store, PR_REC_REF(u, v.asInstanceOf[AbstractStringValue])), pop)
+        }
+
+        case pop@Update1Frame(c, d) => {
+          val push = Update2Frame(v, d)
+          withSwitch(state, Eval(store, c), pop, push)
+        }
+        case pop@Update2Frame(u, c) => {
+          val push = Update3Frame(u, v)
+          withSwitch(state, Eval(store, c), pop, push)
+        }
+        case pop@Update3Frame(u, t) if t.isInstanceOf[AbstractStringValue] => {
+          withPop(Apply(store, PR_REC_SET(u, t.asInstanceOf[AbstractStringValue], v)), pop)
+        }
+
+        case pop@Del1Frame(c) => {
+          val push = Del2Frame(v)
+          withSwitch(state, Eval(store, c), pop, push)
+        }
+        case pop@Del2Frame(u) if v.isInstanceOf[AbstractStringValue] => {
+          withPop(Apply(store, PR_REC_DEL(u, v.asInstanceOf[AbstractStringValue])), pop)
+        }
+
+
+        case pop@RefFrame => withPop(Apply(store, PR_REF(v)), pop)
+        case pop@DerefFrame => withPop(Apply(store, PR_DEREF(v)), pop)
+
+        case pop@Asgn1Frame(c) => {
+          val push = Asgn2Frame(v)
+          withSwitch(state, Eval(store, c), pop, push)
+        }
+        case pop@Asgn2Frame(u) => withPop(Apply(store, PR_ASGN(u, v)), pop)
+
+
+        case pop@IfFrame(c, d) => withPop(Apply(store, PR_IF(v, c, d)), pop)
+
+        case pop@SeqFrame(c) => withPop(Eval(store, c), pop)
+
+        case pop@ThrowFrame => withPop(Apply(store, PR_THROW(v)), pop)
+
+        case pop@BreakFrame(l) => withPop(Apply(store, PR_BREAK(l, v)), pop)
+
+        case pop@OpFrame(op, us, Nil) => withPop(Apply(store, PR_OP(op, us ++ List(v))), pop)
+        case pop@OpFrame(op, us, c :: cs) => {
+          val push = OpFrame(op, us ++ List(v), cs)
+          withSwitch(state, Eval(store, c), pop, push)
+        }
+
 
         case _ => {
           val msg = "No transition for cont-state \n" + state + "\nand a stack\n" + k
           Set((Eps, PError(msg)))
         }
-
       }
     }
 
-    // todo implement the rest
-    case _ => throw new Exception("No transition for state \n" + state + "\nand a stack\n" + k)
+    case _ => {
+      val msg = "No transition for state \n" + state + "\nand a stack\n" + k
+      Set((Eps, PError(msg)))
+    }
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////

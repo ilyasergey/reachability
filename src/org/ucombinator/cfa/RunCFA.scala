@@ -58,7 +58,7 @@ object RunCFA {
 
     where
 
-    --lang lang            Target language (default = scheme)
+    --lang l               Target language (default = scheme)
                              js        -- LambdaJS
                              scheme    -- Scheme
     --pdcfa                run Pushdown k-CFA (run by default)
@@ -70,8 +70,8 @@ object RunCFA {
     --simple-graph         if the graph is dumped, distinct natural numbers are displayed on its nodes instead of actual configurations
     --interrupt-after n    interrupts the analysis after n states computed (default = off)
     --help                 print this message
-    --verbose              print additiona information on the analysis and results
-    filePath               path to a Scheme file to be analysed
+    --verbose              print additional information on the analysis and results
+    filePath               path to a file to be analysed
     """)
 
 

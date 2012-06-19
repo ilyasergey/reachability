@@ -213,7 +213,7 @@ trait LJSyntax {
 
   case class PR_REC_DEL(v: Value, s: AbstractStringValue) extends PotentialRedex
 
-  case class PR_IF(v: Value, tb: Exp, eb: Exp, e: Env) extends PotentialRedex
+  case class PR_IF(v: Value, tb: Closure, eb: Closure) extends PotentialRedex
 
   case class PR_OP(op: String, vs: List[Value]) extends PotentialRedex
 
