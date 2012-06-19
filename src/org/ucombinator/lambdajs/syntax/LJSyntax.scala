@@ -201,7 +201,7 @@ trait LJSyntax {
 
   sealed abstract class PotentialRedex
 
-  case class PR_REF(x: Var, env: Env) extends PotentialRedex
+  case class PR_VAR(v: Var, env: Env) extends PotentialRedex
 
   case class PR_APP(v: Value, args: List[Value]) extends PotentialRedex
 
@@ -219,11 +219,15 @@ trait LJSyntax {
 
   case class PR_SET(v: Value, v1: Value) extends PotentialRedex
 
+  case class PR_REF(v: Value) extends PotentialRedex
+
+  case class PR_ASGN(a: Value, v: Value) extends PotentialRedex
+
   case class PR_DEREF(v: Value) extends PotentialRedex
 
   case class PR_THROW(v: Value) extends PotentialRedex
 
-  case class PR_BREAK(s: String, v: Value) extends PotentialRedex
+  case class PR_BREAK(l: Label, v: Value) extends PotentialRedex
 
 
   /***************************************

@@ -17,6 +17,8 @@ trait StoreInterface {
 
   // analysis functions
 
+  def alloc(s: ControlState): Addr
+
   def alloc(s: ControlState, x: Var): Addr
 
   // utility

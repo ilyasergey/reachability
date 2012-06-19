@@ -33,6 +33,7 @@
 package org.ucombinator.scheme.cfa.cesk
 
 import org.ucombinator.scheme.syntax._
+import org.ucombinator.util.DataUtil._
 
 /**
  * Basic functionality for CESK-based formalisms
@@ -189,28 +190,6 @@ trait CESKMachinery extends StateSpace with PrimOperators {
     case BoolLit(_) | QuotedLit(_) | StringLit(_) => true
     case _: AbstractNumLit => true
     case _ => false
-  }
-
-  /**
-   * A reminiscence of good old days and the undergrad course on FP :)
-   *
-   * todo: rewrite in CPS
-   *
-   * @param list list of sets of values of length N
-   * @return set of lists of values, each of size N,  with possible combinations of constituents
-   */
-  def toSetOfLists[A](list: List[Set[A]]): Set[List[A]] = {
-    list match {
-      case Nil => Set()
-      case hd :: Nil => hd.map(x => List(x))
-      case hd :: tail => {
-        val rest = toSetOfLists(tail)
-        for {
-          elem <- hd
-          suffix <- rest
-        } yield (elem :: suffix)
-      }
-    }
   }
 
   class CESKException(s: String) extends SemanticException(s)

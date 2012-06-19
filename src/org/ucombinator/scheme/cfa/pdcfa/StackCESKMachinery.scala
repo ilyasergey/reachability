@@ -34,6 +34,7 @@ package org.ucombinator.scheme.cfa.pdcfa
 
 import org.ucombinator.scheme.syntax._
 import org.ucombinator.scheme.cfa.cesk._
+import org.ucombinator.util.DataUtil._
 
 /**
  * @author ilya

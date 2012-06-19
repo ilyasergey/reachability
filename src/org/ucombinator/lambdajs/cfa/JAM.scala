@@ -7,7 +7,7 @@ import org.ucombinator.lambdajs.syntax.LJSyntax
  * @author ilya
  */
 
-trait JAM extends LJFrames with LJSyntax {
+trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
   self: StoreInterface =>
 
   /********************************************
@@ -41,8 +41,9 @@ trait JAM extends LJFrames with LJSyntax {
     // Eval states
     case Eval(store, clo) => clo match {
 
-      case GroundClo(x@Var(_, _), rho) => withEps(Apply(store, PR_REF(x, rho)))
+      case GroundClo(x@Var(_, _), rho) => withEps(Apply(store, PR_VAR(x, rho)))
       case GroundClo(e, rho) => withEps(Eval(store, exp2Clo(e, rho)))
+      case ValueClo(v) => withEps(Cont(store, v))
       case RecordClo((s, c) :: tail) => withPush(Eval(store, c), RecFrame(List(), s, tail))
       case LetClo(x, c, d) => withPush(Eval(store, c), LetFrame(x, d))
       case AppClo(c, ds) => withPush(Eval(store, c), AppFrame(ds))
@@ -69,7 +70,7 @@ trait JAM extends LJFrames with LJSyntax {
 
     case Apply(store, pr) => pr match {
 
-      case PR_REF(x, rho) => {
+      case PR_VAR(x, rho) => {
         for (v <- get(store, rho(x))) yield (Eps, Cont(store, v))
       }
       case PR_LET(x, v, GroundClo(e, rho)) => {
@@ -138,6 +139,7 @@ trait JAM extends LJFrames with LJSyntax {
           }
         }
       }
+
       case PR_IF(c, tb, eb, rho) => c match {
         case BoolValue(true) => withEps(Eval(store, GroundClo(tb, rho)))
         case BoolValue(false) => withEps(Eval(store, GroundClo(eb, rho)))
@@ -146,17 +148,83 @@ trait JAM extends LJFrames with LJSyntax {
           (Eps, Eval(store, GroundClo(eb, rho))))
       }
 
+      case PR_OP(op, values) => withEps(Cont(store, delta(op, values)))
 
+      case PR_REF(v) => {
+        val a = alloc(state)
+        withEps(Cont(put(store, a, Set(v)), AddrValue(a)))
+      }
 
+      case PR_DEREF(AddrValue(a)) => {
+        if (get(store, a).isEmpty) {
+          val msg = "Null pointer " + a
+          withEps(PError(msg))
+        } else {
+          for (v <- get(store, a))
+          yield (Eps, Cont(store, v))
+        }
+      }
 
+      case PR_ASGN(AddrValue(a), v) => withEps(Cont(put(store, a, Set(v)), v))
 
+      case PR_THROW(v) => k match {
+        case Nil => {
+          val msg = "Uncaught exception with value " + v.toString
+          withEps(PError(msg))
+        }
+        case (f@TryCatchFrame(x, GroundClo(e, rho))) :: kk => {
+          val a = alloc(state, x)
+          withPop(Eval(put(store, a, Set(v)), GroundClo(e, rho + ((x, a)))), f)
+        }
+        case (f@TryFinallyFrame(c)) :: _ => {
+          withPop(Eval(store, SeqClo(c, ThrowClo(ValueClo(v)))), f)
+        }
+        case (f@LabFrame(l)) :: _ => {
+          withPop(Apply(store, PR_THROW(v)), f)
+        }
+        case f :: _ => {
+          withPop(Apply(store, PR_THROW(v)), f)
+        }
+      }
 
-      // todo implement the rest
+      case PR_BREAK(l, v) => k match {
+        case Nil => {
+          val msg = "Unhandled break with label " + l + " and value " + v.toString
+          withEps(PError(msg))
+        }
+        case (f@TryCatchFrame(_, _)) :: kk => {
+          withPop(Eval(store, BreakClo(l, ValueClo(v))), f)
+        }
+        case (f@TryFinallyFrame(c)) :: _ => {
+          withPop(Eval(store, SeqClo(c, BreakClo(l, ValueClo(v)))), f)
+        }
+        case (f@LabFrame(l1)) :: _ => {
+          if (l1 == l) {
+            withPop(Cont(store, v), f)
+          } else {
+            withPop(Apply(store, PR_BREAK(l, v)), f)
+          }
+        }
+        case f :: _ => {
+          withPop(Apply(store, PR_THROW(v)), f)
+        }
+      }
       case _ => {
         val msg = "No transition for apply-state \n" + state + "\nand a stack\n" + k
         Set((Eps, PError(msg)))
       }
 
+    }
+
+    case Cont(store, v) => k match {
+      case Nil => withEps(PFinal(v, store))
+      case LetFrame(x, c) :: _ => withEps(Apply(store, PR_LET(x, v, c)))
+
+
+      case _ => {
+        val msg = "No transition for cont-state \n" + state + "\nand a stack\n" + k
+        Set((Eps, PError(msg)))
+      }
     }
 
     // todo implement the rest
