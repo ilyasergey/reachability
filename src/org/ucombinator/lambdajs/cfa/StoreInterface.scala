@@ -9,6 +9,8 @@ import org.ucombinator.lambdajs.syntax.LJSyntax
 trait StoreInterface {
   self: LJSyntax =>
 
+  import LJSyntax._
+
   type ControlState
 
   type :->[A, B] = Map[A, B]

@@ -39,6 +39,7 @@ import org.ucombinator.util._
 import org.ucombinator.scheme.cfa.kcfa.KCFAAnalysisRunner
 import org.ucombinator.scheme.cfa.pdcfa.PDCFAAnalysisRunner
 import AnalysisType._
+import org.ucombinator.lambdajs.cfa.pdcfa.LambdaJSPDCFARunner
 
 /**
  * @author ilya
@@ -99,13 +100,31 @@ object RunCFA {
   }
 
   def processJS(opts: CFAOptions) {
+
     opts.analysisType match {
       case KCFA => {
         println("Standard k-CFA for LambdaJS is not supported")
         return
       }
       case PDCFA => {
-        /*proceed*/
+        val runner = new LambdaJSPDCFARunner(opts)
+
+        val filename = opts.fileName
+        if (opts.verbose) {
+          System.err.print("Parsing LambdaJS program...")
+        }
+
+        // todo implement me!
+        val program: runner.Exp = null
+        //    val program = SExp.parseAllIn(filename)
+
+        if (opts.verbose) {
+          System.out.println("Input program:")
+          System.out.println(program)
+          System.out.println("\n")
+        }
+
+        runner.runPDCFA(program)
       }
     }
 

@@ -62,7 +62,7 @@ trait DSGMachinery {
 
   def iterateDSG(dsg: DSG, helper: NewDSGHelper): (DSG, NewDSGHelper) = dsg match {
     case DSG(ss, ee, s0) => {
-      val newNodesAndEdges = for {
+      val newNodesAndEdges: Set[(S, Edge)] = for {
         s <- ss
         kont <- helper.getRequiredKont(s, s0)
         possibleFrames = helper.getPossibleStackFrames(s)
@@ -71,15 +71,23 @@ trait DSGMachinery {
 
       val (obtainedStates, obtainedEdges) = newNodesAndEdges.unzip
 
-      // Transform switch edges to pairs of pus/pop edges
-      val noSwitches: Edges = if (canHaveSwitchFrames) processSwitchEdges(obtainedEdges) else obtainedEdges
+      // Transform switch edges to pairs of push/pop edges
+      val noSwitchesEdges: Edges = if (canHaveSwitchFrames) processSwitchEdges(obtainedEdges) else obtainedEdges
+      // Collect new states after decoupling switches
+      val newStates: Nodes = if (canHaveSwitchFrames) {
+        val nodes: Set[S] = (noSwitchesEdges -- ee).map {
+          case Edge(source, _, target) => target
+        }
+        nodes ++ obtainedStates
+      }
+      else obtainedStates
 
-      val newEdges = noSwitches -- ee
-      //val newHelper = updateHelper(helper, newEdges, ee)
+      val newEdges = noSwitchesEdges -- ee
+
       helper.update(newEdges)
 
       // S' = ...
-      val ss1: Nodes = ss ++ obtainedStates + s0
+      val ss1: Nodes = ss ++ newStates + s0
 
       // E' = ...
       val ee1 = (ee ++ newEdges)
@@ -295,7 +303,7 @@ trait DSGMachinery {
   }
 
   private def processSwitchEdges(edges: Edges): Edges = edges.flatMap {
-    case Edge(source, Switch(popped, mid: S, pushed), target) => Set(
+    case Edge(source, Switch(popped, target: S, pushed), mid) => Set(
       Edge(source, Pop(popped), mid),
       Edge(mid, Push(pushed), target)
     )

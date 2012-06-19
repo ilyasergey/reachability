@@ -56,6 +56,8 @@ abstract class AnalysisRunner(opts: CFAOptions) extends FancyOutput {
 
   def shouldGC = opts.gc
 
+  def dumpDSG = opts.dumpGraph
+
   def printGCDebug = opts.gcDebug
 
   def interrupt = opts.interrupt

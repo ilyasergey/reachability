@@ -19,9 +19,9 @@ abstract class LambdaJSCFARunner(opts: CFAOptions) extends AnalysisRunner(opts) 
         }
       }
     } else state match {
-      case Eval(st, clo) => (clo.toString + "\\n" + "  store hash = " + st.hashCode().toString)
-      case Apply(st, pr) => (pr.toString + "\\n" + "  store hash = " + st.hashCode().toString)
-      case Cont(st, v) => (v.toString + "\\n" + "  store hash = " + st.hashCode().toString)
+      case Eval(st, clo) => ("Eval(" + clo.toString + ")" + "\\n" + "  store hash = " + st.hashCode().toString)
+      case Apply(st, pr) => ("Apply(" + pr.toString + ")" + "\\n" + "  store hash = " + st.hashCode().toString)
+      case Cont(st, v) => ("Cont(" + v.toString + ")" + "\\n" + "  store hash = " + st.hashCode().toString)
 
       case PFinal(v, _) => "Final(" + v.toString + ")"
       case PError(msg) => "ErrorState[" + msg + "]"

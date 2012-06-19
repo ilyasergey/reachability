@@ -6,16 +6,9 @@ import util.parsing.input.Positional
  * @author ilya
  */
 
-trait LJSyntax {
-
-  type Addr
+object LJSyntax {
 
   type Label = String
-
-  /**
-   * Variable environments
-   */
-  type Env = Map[Var, Addr]
 
   object Exp {
     private var maxSerialNumber = 0
@@ -44,9 +37,9 @@ trait LJSyntax {
     override def isValue = true
   }
 
-  case class EAddr(a: Addr) extends Exp {
-    override def isValue = true
-  }
+//  case class EAddr(a: Addr) extends Exp {
+//    override def isValue = true
+//  }
 
   case class ENum(n: Long) extends Exp {
     override def isValue = true
@@ -69,7 +62,7 @@ trait LJSyntax {
   /*
    * Other LambdaJS expressions
    */
-  case class Record(entries: List[(StringValue, Exp)]) extends Exp {
+  case class Record(entries: List[(String, Exp)]) extends Exp {
     override def isValue = entries.foldLeft(true) {
       case (result, (s, v)) => result && v.isValue
     }
@@ -109,6 +102,19 @@ trait LJSyntax {
 
   case class OpApp(op: String, args: List[Exp], stamp: Int) extends StampedExp
 
+}
+
+trait LJSyntax {
+
+  import LJSyntax._
+
+  type Addr
+
+  /**
+   * Variable environments
+   */
+  type Env = Map[Var, Addr]
+
   /**
    * Values
    */
@@ -129,14 +135,10 @@ trait LJSyntax {
 
   case object NumTopValue extends AbstractNumValue
 
-  def mkNumValue(n: Long): AbstractNumValue = {
-    if (n > 2) {
-      NumTopValue
-    } else if (n < -2) {
-      NumTopValue
-    } else {
-      NumValue(n)
-    }
+  def mkNumValue(n: Long, truncate: Boolean): AbstractNumValue = if (truncate) {
+    NumTopValue
+  } else {
+    NumValue(n)
   }
 
   case class AddrValue(a: Addr) extends Value
@@ -243,7 +245,7 @@ trait LJSyntax {
     expr match {
       case v if v.isValue => ValueClo(exp2Value(v))
       case Record(entries) => RecordClo(entries.map {
-        case (s, t) => (s, toGround(t))
+        case (s, t) => (StringValue(s), toGround(t))
       })
       case f@Fun(_, _, _) => toGround(f)
       case x@Var(_, _) => toGround(x)
@@ -273,13 +275,13 @@ trait LJSyntax {
    */
   def exp2Value(e: Exp): Value = e match {
     case EString(s) => StringValue(s)
-    case EAddr(a) => AddrValue(a)
-    case ENum(n) => mkNumValue(n)
+    case ENum(n) => mkNumValue(n, false)
     case EBool(b) => BoolValue(b)
     case EUndef => UndefValue
     case ENull => NullValue
+    // case EAddr(a) => AddrValue(a)
     case r@Record(entries) if r.isValue => RecValue(entries.map {
-      case (s, ee) => (s, exp2Value(ee))
+      case (s, ee) => (StringValue(s), exp2Value(ee))
     })
     case x => throw new Exception("Not value term: " + e.toString)
   }

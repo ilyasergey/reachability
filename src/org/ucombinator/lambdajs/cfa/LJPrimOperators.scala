@@ -1,7 +1,6 @@
 package org.ucombinator.lambdajs.cfa
 
 import org.ucombinator.lambdajs.syntax.LJSyntax
-import org.ucombinator.util.DataUtil._
 
 /**
  * @author ilya

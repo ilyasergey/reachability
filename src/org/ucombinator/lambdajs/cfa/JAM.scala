@@ -10,6 +10,8 @@ import org.ucombinator.lambdajs.syntax.LJSyntax
 trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
   self: StoreInterface =>
 
+  import LJSyntax._
+
   /********************************************
    * Partial states
    ********************************************/
@@ -45,6 +47,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
     case Eval(store, clo) => clo match {
 
       case GroundClo(x@Var(_, _), rho) => withEps(Apply(store, PR_VAR(x, rho)))
+      case GroundClo(fun@Fun(_, _, _), rho) => withEps(Cont(store, FunValue(fun, rho)))
       case GroundClo(e, rho) => withEps(Eval(store, exp2Clo(e, rho)))
       case ValueClo(v) => withEps(Cont(store, v))
       case RecordClo((s, c) :: tail) => withPush(Eval(store, c), RecFrame(List(), s, tail))
@@ -66,7 +69,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
       case ThrowClo(c) => withPush(Eval(store, c), ThrowFrame)
       case OpClo(op, c :: tail) => withPush(Eval(store, c), OpFrame(op, List(), tail))
       case _ => {
-        val msg = "No transition for eval-state\n" + state + "\nand a stack\n" + k
+        val msg = "No transition for eval-state\\n" + state + "\\nand a stack\\n" + k
         Set((Eps, PError(msg)))
       }
     }
@@ -85,14 +88,14 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
         val rho1 = rho ++ xs.zip(as)
         withEps(Eval(putMany(store, as.zip(vs.map(Set(_)))), GroundClo(e, rho1)))
       } else {
-        val msg = "Wrong number of arguments in the state\n" + state + "\nand a stack\n" + k
+        val msg = "Wrong number of arguments in the state\\n" + state + "\\nand a stack\\n" + k
         Set((Eps, PError(msg)))
       }
       case PR_REC_REF(RecValue(entries), sv) => {
         sv match {
           // Fetching any field of a record
           case StringTop => {
-            val msg = "Alarm! StringTop is used as a reference for a record in state \n" + state
+            val msg = "Alarm! StringTop is used as a reference for a record in state \\n" + state
             System.err.println(msg)
             Set((Eps, PError(msg)))
           }
@@ -112,7 +115,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
         sv match {
           // Fetching any field of a record
           case StringTop => {
-            val msg = "Alarm! StringTop is used as a reference for record update in state \n" + state
+            val msg = "Alarm! StringTop is used as a reference for record update in state \\n" + state
             System.err.println(msg)
             Set((Eps, PError(msg)))
           }
@@ -129,7 +132,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
         sv match {
           // Fetching any field of a record
           case StringTop => {
-            val msg = "Alarm! StringTop is used as a reference for record delete in state \n" + state
+            val msg = "Alarm! StringTop is used as a reference for record delete in state \\n" + state
             System.err.println(msg)
             Set((Eps, PError(msg)))
           }
@@ -213,7 +216,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
         }
       }
       case _ => {
-        val msg = "No transition for apply-state \n" + state + "\nand a stack\n" + k
+        val msg = "No transition for apply-state \\n" + state + "\\nand a stack\\n" + k
         Set((Eps, PError(msg)))
       }
 
@@ -223,9 +226,9 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
       case Nil => withEps(PFinal(v, store))
 
       case head :: _ => head match {
-        case LetFrame(x, c) => withEps(Apply(store, PR_LET(x, v, c)))
+        case pop@LetFrame(x, c) => withPop(Apply(store, PR_LET(x, v, c)), pop)
 
-        case AppFrame(Nil) => withEps(Apply(store, PR_APP(v, Nil)))
+        case pop@AppFrame(Nil) => withPop(Apply(store, PR_APP(v, Nil)), pop)
         case pop@AppFrame(c :: cx) => {
           val push = ArgFrame(v, Nil, cx)
           withSwitch(state, Eval(store, c), pop, push)
@@ -299,14 +302,14 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
 
 
         case _ => {
-          val msg = "No transition for cont-state \n" + state + "\nand a stack\n" + k
+          val msg = "No transition for cont-state \\n" + state + "\\nand a stack\\n" + k
           Set((Eps, PError(msg)))
         }
       }
     }
 
     case _ => {
-      val msg = "No transition for state \n" + state + "\nand a stack\n" + k
+      val msg = "No transition for state \\n" + state + "\\nand a stack\\n" + k
       Set((Eps, PError(msg)))
     }
   }
@@ -320,9 +323,9 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {
   private def withPop(pst: PState, f: Frame): Set[(StackAction[Frame], ControlState)] = Set((Pop(f), pst))
 
   private def withSwitch(s1: PState, s2: PState, popped: Frame, pushed: Frame): Set[(StackAction[Frame], ControlState)] = {
-    val swapState = PSwitch(s1, s2, popped, pushed)
-    val frame = Switch(popped, swapState, pushed)
-    Set((frame, swapState))
+    val state = PSwitch(s1, s2, popped, pushed)
+    val frame = Switch(popped, s2, pushed)
+    Set((frame, state))
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////

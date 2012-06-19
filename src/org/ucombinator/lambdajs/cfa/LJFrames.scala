@@ -8,6 +8,8 @@ import org.ucombinator.lambdajs.syntax.LJSyntax
 
 trait LJFrames extends LJSyntax {
 
+  import LJSyntax._
+
   /**
    * Frames (aka Continuations)
    */

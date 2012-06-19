@@ -56,6 +56,8 @@ trait FancyOutput {
 
   def interrupt: Boolean
 
+  def dumpDSG: Boolean
+
   def interruptAfter: Int
 
   def prettyPrintState(state: ControlState, map: Map[ControlState, Int]): String

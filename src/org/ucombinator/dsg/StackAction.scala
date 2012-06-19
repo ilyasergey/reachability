@@ -19,7 +19,7 @@ case class Push[F](frame: F) extends StackAction[F]
 case class Pop[F](frame: F) extends StackAction[F]
 
 // Pop one frame, push another one
-case class Switch[F, S](popped: F, state: S, pushed: F) extends StackAction[F]
+case class Switch[F, S](popped: F, target: S, pushed: F) extends StackAction[F]
 
 object StackActionKind extends Enumeration {
   type StackActionKind = Value
