@@ -10,15 +10,6 @@ object LJSyntax {
 
   type Label = String
 
-  object Exp {
-    private var maxSerialNumber = 0
-
-    def allocateSerialNumber(): Long = {
-      maxSerialNumber += 1
-      maxSerialNumber
-    }
-  }
-
   sealed abstract class Exp extends Positional {
     def isValue: Boolean = false
   }
@@ -41,7 +32,11 @@ object LJSyntax {
 //    override def isValue = true
 //  }
 
-  case class ENum(n: Long) extends Exp {
+  case class EInt(n: Int) extends Exp {
+    override def isValue = true
+  }
+
+  case class EFloat(n: Float) extends Exp {
     override def isValue = true
   }
 
@@ -131,14 +126,22 @@ trait LJSyntax {
 
   abstract class AbstractNumValue extends Value
 
-  case class NumValue(n: Long) extends AbstractNumValue
+  case class IntValue(n: Int) extends AbstractNumValue
+
+  case class FloatValue(f: Float) extends AbstractNumValue
 
   case object NumTopValue extends AbstractNumValue
 
-  def mkNumValue(n: Long, truncate: Boolean): AbstractNumValue = if (truncate) {
+  def mkIntValue(n: Int, truncate: Boolean): AbstractNumValue = if (truncate) {
     NumTopValue
   } else {
-    NumValue(n)
+    IntValue(n)
+  }
+
+  def mkFloatValue(n: Float, truncate: Boolean): AbstractNumValue = if (truncate) {
+    NumTopValue
+  } else {
+    FloatValue(n)
   }
 
   case class AddrValue(a: Addr) extends Value
@@ -275,7 +278,8 @@ trait LJSyntax {
    */
   def exp2Value(e: Exp): Value = e match {
     case EString(s) => StringValue(s)
-    case ENum(n) => mkNumValue(n, false)
+    case EInt(n) => mkIntValue(n, false)
+    case EFloat(n) => mkFloatValue(n, false)
     case EBool(b) => BoolValue(b)
     case EUndef => UndefValue
     case ENull => NullValue

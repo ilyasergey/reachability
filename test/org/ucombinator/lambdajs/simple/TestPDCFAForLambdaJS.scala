@@ -18,8 +18,8 @@ object TestPDCFAForLambdaJS {
   val app = Fun(List(Var("f", 1), Var("x", 2)), App(Var("f", 1), List(Var("x", 2)), 3), 0)
   val id = Fun(List(Var("y", 4)), Var("y", 4), 5)
 
-  val example1 = Let(Var("z", 6), ENum(42), App(id, List(Var("z", 6)), 8), 7)
-  val example2 = Let(Var("z", 6), ENum(42), App(app, List(id, Var("z", 6)), 8), 7)
+  val example1 = Let(Var("z", 6), EInt(42), App(id, List(Var("z", 6)), 8), 7)
+  val example2 = Let(Var("z", 6), EInt(42), App(app, List(id, Var("z", 6)), 8), 7)
 
   def main(args: Array[String]) {
     val opts = CFAOptions.parse(args_1_PDCFA_GC)
