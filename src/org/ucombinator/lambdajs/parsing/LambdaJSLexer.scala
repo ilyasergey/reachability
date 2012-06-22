@@ -32,7 +32,9 @@ class LambdaJSLexer extends RegexParsers {
 
 
   def identOrOperator: Parser[LJToken] = regex(new Regex("([^.#; \\t\\r\n()',`\"][^; \\t\\r\\n()',`\"]*|[.][^; \\t\\r\\n()',`\"]+)")) ^^
-    (str => if (operators.contains(str)) TOp(str) else TIdent(str))
+    (str => if (operators.contains(str)) TOp(str) else {
+      if (str.startsWith("$")) TGlobalIdent(str) else TIdent(str)
+    })
 
   def token: Parser[LJToken] = (
     "#t" ^^^ TTrue
@@ -51,6 +53,9 @@ class LambdaJSLexer extends RegexParsers {
       | "deref" ^^^ TDeref
       | "while" ^^^ TWhile
       | "break" ^^^ TBreak
+      | "set!" ^^^ TSet
+      | "begin" ^^^ TSeq
+      | "object" ^^^ TRec
       | "throw" ^^^ TThrow
       | "if" ^^^ TIf
       | "let" ^^^ TLet
@@ -111,6 +116,8 @@ object LambdaJSTokens {
 
   case class TIdent(id: String) extends LJToken
 
+  case class TGlobalIdent(id: String) extends LJToken
+
   case class TOp(op: String) extends LJToken
 
   case class TFloat(f: Float) extends LJToken
@@ -124,6 +131,10 @@ object LambdaJSTokens {
   case object TDeref extends LJToken
 
   case object TRef extends LJToken
+
+  case object TSeq extends LJToken
+
+  case object TRec extends LJToken
 
   case object TSet extends LJToken
 

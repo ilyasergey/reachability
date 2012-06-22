@@ -35,7 +35,7 @@ class LambdaJSParser(val bound: Map[String, Var]) extends Parsers {
 }
 
 object LambdaJSParser {
-  private var maxSerialNumber = 0
+  private var maxSerialNumber = 1
 
   def newStamp(): Int = {
     maxSerialNumber += 1
