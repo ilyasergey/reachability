@@ -28,9 +28,9 @@ object LJSyntax {
     override def isValue = true
   }
 
-//  case class EAddr(a: Addr) extends Exp {
-//    override def isValue = true
-//  }
+  //  case class EAddr(a: Addr) extends Exp {
+  //    override def isValue = true
+  //  }
 
   case class EInt(n: Int) extends Exp {
     override def isValue = true
@@ -61,41 +61,184 @@ object LJSyntax {
     override def isValue = entries.foldLeft(true) {
       case (result, (s, v)) => result && v.isValue
     }
+    override def hashCode() = stamp
+
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
   }
 
-  case class Let(x: Var, rhs: Exp, body: Exp, stamp: Int) extends StampedExp
+  case class Let(x: Var, rhs: Exp, body: Exp, stamp: Int) extends StampedExp {
+    override def hashCode() = stamp
 
-  case class App(fun: Exp, args: List[Exp], stamp: Int) extends StampedExp
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
+  }
 
-  case class Lookup(rec: Exp, index: Exp, stamp: Int) extends StampedExp
+  case class App(fun: Exp, args: List[Exp], stamp: Int) extends StampedExp {
+    override def hashCode() = stamp
 
-  case class Update(rec: Exp, index: Exp, rhs: Exp, stamp: Int) extends StampedExp
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
+  }
 
-  case class Del(rec: Exp, index: Exp, stamp: Int) extends StampedExp
+  case class Lookup(rec: Exp, index: Exp, stamp: Int) extends StampedExp {
+    override def hashCode() = stamp
 
-  case class Asgn(lhs: Exp, rhs: Exp, stamp: Int) extends StampedExp
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
+  }
 
-  case class Ref(e: Exp, stamp: Int) extends StampedExp
+  case class Update(rec: Exp, index: Exp, rhs: Exp, stamp: Int) extends StampedExp {
+    override def hashCode() = stamp
 
-  case class Deref(e: Exp, stamp: Int) extends StampedExp
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
+  }
 
-  case class If(cond: Exp, tb: Exp, eb: Exp, stamp: Int) extends StampedExp
+  case class Del(rec: Exp, index: Exp, stamp: Int) extends StampedExp {
+    override def hashCode() = stamp
 
-  case class Seq(fst: Exp, snd: Exp, stamp: Int) extends StampedExp
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
+  }
 
-  case class While(cond: Exp, body: Exp, stamp: Int) extends StampedExp
+  case class Asgn(lhs: Exp, rhs: Exp, stamp: Int) extends StampedExp {
+    override def hashCode() = stamp
 
-  case class Labelled(lab: Label, e: Exp, stamp: Int) extends StampedExp
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
+  }
 
-  case class Break(lab: Label, e: Exp, stamp: Int) extends StampedExp
+  case class Ref(e: Exp, stamp: Int) extends StampedExp {
+    override def hashCode() = stamp
 
-  case class TryCatch(e: Exp, x: Var, rest: Exp, stamp: Int) extends StampedExp
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
+  }
 
-  case class TryFinally(e: Exp, rest: Exp, stamp: Int) extends StampedExp
+  case class Deref(e: Exp, stamp: Int) extends StampedExp {
+    override def hashCode() = stamp
 
-  case class Throw(e: Exp, stamp: Int) extends StampedExp
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
+  }
 
-  case class OpApp(op: String, args: List[Exp], stamp: Int) extends StampedExp
+  case class If(cond: Exp, tb: Exp, eb: Exp, stamp: Int) extends StampedExp {
+    override def hashCode() = stamp
+
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
+  }
+
+  case class Seq(fst: Exp, snd: Exp, stamp: Int) extends StampedExp {
+    override def hashCode() = stamp
+
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
+  }
+
+  case class While(cond: Exp, body: Exp, stamp: Int) extends StampedExp {
+    override def hashCode() = stamp
+
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
+  }
+
+  case class Labelled(lab: Label, e: Exp, stamp: Int) extends StampedExp {
+    override def hashCode() = stamp
+
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
+  }
+
+  case class Break(lab: Label, e: Exp, stamp: Int) extends StampedExp {
+    override def hashCode() = stamp
+
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
+  }
+
+  case class TryCatch(e: Exp, x: Var, rest: Exp, stamp: Int) extends StampedExp {
+    override def hashCode() = stamp
+
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
+  }
+
+  case class TryFinally(e: Exp, rest: Exp, stamp: Int) extends StampedExp {
+    override def hashCode() = stamp
+
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
+  }
+
+  case class Throw(e: Exp, stamp: Int) extends StampedExp {
+    override def hashCode() = stamp
+
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
+  }
+
+  case class OpApp(op: String, args: List[Exp], stamp: Int) extends StampedExp {
+    override def hashCode() = stamp
+
+    override def equals(obj: Any) = obj match {
+      case se: StampedExp => se.stamp == this.stamp
+      case x: AnyRef => this eq x
+      case x => x equals this
+    }
+  }
 
 }
 
