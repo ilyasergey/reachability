@@ -3,6 +3,7 @@ package org.ucombinator.lambdajs.simple
 import org.ucombinator.util.CFAOptions
 import org.ucombinator.lambdajs.cfa.pdcfa.LambdaJSPDCFARunner
 import org.ucombinator.lambdajs.syntax.LJSyntax
+import org.ucombinator.lambdajs.parsing.LambdaJSParser
 
 /**
  * @author ilya
@@ -21,11 +22,25 @@ object TestPDCFAForLambdaJS {
   val example1 = Let(Var("z", 6), EInt(42), App(id, List(Var("z", 6)), 8), 7)
   val example2 = Let(Var("z", 6), EInt(42), App(app, List(id, Var("z", 6)), 8), 7)
 
+  val text3 = """
+  (let ((z (lambda (y) y))
+        (g (lambda (f x) (f x))))
+        (g z 42))
+  """
+
   def main(args: Array[String]) {
     val opts = CFAOptions.parse(args_1_PDCFA_GC)
     val runner = new LambdaJSPDCFARunner(opts)
 
-    runner.runPDCFA(example2)
+
+    val example3 = parseExample(text3)
+    runner.runPDCFA(example3)
+  }
+
+  def parseExample(text: String) = {
+    val parser = new LambdaJSParser
+    val result = parser.parseAll(text)
+    result
   }
 
 }

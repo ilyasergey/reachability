@@ -8,6 +8,13 @@ object LambdaLJParserTest {
 
   def main(args: Array[String]) {
 
+    parseIf()
+    parseBegin()
+    parseApp()
+    parseDelete()
+    parseUpdate()
+    parseGet()
+    parseLet()
     parseRec()
     parseLambda()
     parseInt()
@@ -17,11 +24,8 @@ object LambdaLJParserTest {
   }
 
   def parseAndPrint(text: String) {
-    val lexer = new LambdaJSLexer
-    val input = new lexer.Scanner(text)
-
     val parser = new LambdaJSParser
-    val result = parser.parseAll(input)
+    val result = parser.parseAll(text)
 
     println(result)
   }
@@ -51,5 +55,61 @@ object LambdaLJParserTest {
     parseAndPrint(rec)
   }
 
+  def parseGet() {
+    val rec = """
+    (get-field  (object ("$proto" "$Boolean.prototype")
+                        ("$class" "Boolean")
+                        ("$value" 42))
+                "$value")
+    """
+    parseAndPrint(rec)
+  }
+
+  def parseUpdate() {
+    val rec = """
+    (update-field null
+                  "length"
+                  1.0)
+    """
+    parseAndPrint(rec)
+  }
+
+  def parseDelete() {
+    val rec = """
+    (delete-field null
+                  "length")
+    """
+    parseAndPrint(rec)
+  }
+
+  def parseApp() {
+    val text = """
+    ((lambda (f x) (f x)) (lambda (z) z) 42)
+    """
+    parseAndPrint(text)
+  }
+  def parseIf() {
+    val text = """
+    (if #t 42 "$code")
+    """
+    parseAndPrint(text)
+  }
+
+  def parseBegin() {
+    val text = """
+    (begin 42 (begin 43 null))
+    """
+    parseAndPrint(text)
+  }
+
+  def parseLet() {
+    val let = """
+    (let ((x "abc")
+          (y 42)
+          (z 7.4))
+          (lambda (u) z))
+    """
+    parseAndPrint(let)
+  }
 
 }
