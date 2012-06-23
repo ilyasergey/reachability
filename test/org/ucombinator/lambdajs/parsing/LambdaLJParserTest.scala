@@ -8,6 +8,7 @@ object LambdaLJParserTest {
 
   def main(args: Array[String]) {
 
+    parseRec()
     parseLambda()
     parseInt()
     parseString()
@@ -39,6 +40,15 @@ object LambdaLJParserTest {
 
   def parseUndef() {
     parseAndPrint("undefined")
+  }
+
+  def parseRec() {
+    val rec = """
+    (lambda (x) (object ("$proto" "$Boolean.prototype")
+                        ("$class" "Boolean")
+                        ("$value" x)))
+    """
+    parseAndPrint(rec)
   }
 
 

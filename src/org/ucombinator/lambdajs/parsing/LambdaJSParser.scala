@@ -65,8 +65,20 @@ class LambdaJSParser extends Parsers {
       (vars, newBound)
     })
 
+  def entry(bv: Map[String, Var]): Parser[(String, Exp)] = LPar ~> (string ~ exp(bv)) <~ RPar ^^ {
+    case s ~ e => (s, e)
+  }
 
-  def exp(boundVars: Map[String, Var]): Parser[Exp] = (
+  def rec(bv: Map[String, Var]): Parser[List[(String, Exp)]] = rep(entry(bv))
+
+
+  /**
+   * Lambda JS expression parser
+   *
+   * @param bv A map for variables bound in a context
+   * @return context-sensitive parser for expressions
+   */
+  def exp(bv: Map[String, Var]): Parser[Exp] = (
     string ^^ EString
       | int ^^ EInt
       | float ^^ EFloat
@@ -74,15 +86,16 @@ class LambdaJSParser extends Parsers {
       | TFalse ^^^ EBool(false)
       | TUndef ^^^ EUndef
       | TNull ^^^ ENull
+      | (LPar ~ TRec) ~> rec(bv) <~ RPar ^^ (es => Record(es, newStamp()))
 
       | (LPar ~ TLambda) ~> (params >> {
-      case (vars, newBound) => exp(boundVars ++ newBound) ^^ (e => (vars, e))
+      case (vars, newBound) => exp(bv ++ newBound) ^^ (e => (vars, e))
     }) <~ RPar ^^ {
       case (params, body) => Fun(params, body, newStamp())
     }
 
       | globIdent ^^ (s => Var(s, 0))
-      | boundIdentifier(boundVars) ^^ (s => boundVars(s))
+      | boundIdentifier(bv) ^^ (s => bv(s))
     )
 
 

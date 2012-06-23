@@ -57,7 +57,7 @@ object LJSyntax {
   /*
    * Other LambdaJS expressions
    */
-  case class Record(entries: List[(String, Exp)]) extends Exp {
+  case class Record(entries: List[(String, Exp)], stamp: Int) extends Exp {
     override def isValue = entries.foldLeft(true) {
       case (result, (s, v)) => result && v.isValue
     }
@@ -247,7 +247,7 @@ trait LJSyntax {
 
     expr match {
       case v if v.isValue => ValueClo(exp2Value(v))
-      case Record(entries) => RecordClo(entries.map {
+      case Record(entries, _) => RecordClo(entries.map {
         case (s, t) => (StringValue(s), toGround(t))
       })
       case f@Fun(_, _, _) => toGround(f)
@@ -284,7 +284,7 @@ trait LJSyntax {
     case EUndef => UndefValue
     case ENull => NullValue
     // case EAddr(a) => AddrValue(a)
-    case r@Record(entries) if r.isValue => RecValue(entries.map {
+    case r@Record(entries, _) if r.isValue => RecValue(entries.map {
       case (s, ee) => (StringValue(s), exp2Value(ee))
     })
     case x => throw new Exception("Not value term: " + e.toString)
