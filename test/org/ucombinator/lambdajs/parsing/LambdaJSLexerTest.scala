@@ -10,10 +10,10 @@ object LambdaJSLexerTest {
 
   def main(args: Array[String]) {
 
-    val lexer = new LambdaJSLexer
     if (args.size == 0) {
       return
     }
+    val lexer = new LambdaJSLexer
 
     val filename = args(0)
     val result = lexer.parseAllIn(filename)

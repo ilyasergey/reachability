@@ -2,14 +2,21 @@ package org.ucombinator.lambdajs.parsing
 
 import util.parsing.combinator.RegexParsers
 import util.matching.Regex
+import util.parsing.combinator.token.Tokens
+import util.parsing.combinator.lexical.Lexical
 
 /**
  * @author ilya
  */
 
-class LambdaJSLexer extends RegexParsers {
+class LambdaJSLexer extends Lexical with RegexParsers {
 
   import LambdaJSTokens._
+
+  override type Elem = Char
+  type Token = LJToken
+
+  def whitespace = rep(whitespaceChar)
 
   override def skipWhitespace = true
 
@@ -32,7 +39,8 @@ class LambdaJSLexer extends RegexParsers {
 
 
   def identOrOperator: Parser[LJToken] = regex(new Regex("([^.#; \\t\\r\n()',`\"][^; \\t\\r\\n()',`\"]*|[.][^; \\t\\r\\n()',`\"]+)")) ^^
-    (str => if (operators.contains(str)) TOp(str) else {
+    (str => if (operators.contains(str)) TOp(str)
+    else {
       if (str.startsWith("$")) TGlobalIdent(str) else TIdent(str)
     })
 
@@ -79,7 +87,7 @@ class LambdaJSLexer extends RegexParsers {
 
 }
 
-object LambdaJSTokens {
+object LambdaJSTokens extends Tokens {
 
   val operators: Set[String] = Set(
     "+", "string-+", "%", "-", "*", "/", "===", "==", "<", "string-<",
@@ -98,60 +106,62 @@ object LambdaJSTokens {
     "prim?"
   )
 
-  abstract sealed class LJToken
+  abstract sealed class LJToken(val chars: String) extends Token
 
-  case object TTrue extends LJToken
+  case object TTrue extends LJToken("true")
 
-  case object TFalse extends LJToken
+  case object TFalse extends LJToken("false")
 
-  case object TUndef extends LJToken
+  case object TUndef extends LJToken("undefined")
 
-  case object TNull extends LJToken
+  case object TNull extends LJToken("null")
 
-  case object LPar extends LJToken
+  case object LPar extends LJToken("(")
 
-  case object RPar extends LJToken
+  case object RPar extends LJToken(")")
 
-  case class TString(s: String) extends LJToken
+  case class TString(s: String) extends LJToken(s)
 
-  case class TIdent(id: String) extends LJToken
+  abstract class LJIdent(id: String) extends LJToken(id)
 
-  case class TGlobalIdent(id: String) extends LJToken
+  case class TIdent(id: String) extends LJIdent(id)
 
-  case class TOp(op: String) extends LJToken
+  case class TGlobalIdent(id: String) extends LJIdent(id)
 
-  case class TFloat(f: Float) extends LJToken
+  case class TOp(op: String) extends LJToken(op)
 
-  case class TInt(n: Int) extends LJToken
+  case class TFloat(f: Float) extends LJToken(f.toString)
 
-  case object TLambda extends LJToken
+  case class TInt(n: Int) extends LJToken(n.toString)
 
-  case object TLet extends LJToken
+  case object TLambda extends LJToken("lambda")
 
-  case object TDeref extends LJToken
+  case object TLet extends LJToken("let")
 
-  case object TRef extends LJToken
+  case object TDeref extends LJToken("deref")
 
-  case object TSeq extends LJToken
+  case object TRef extends LJToken("alloc")
 
-  case object TRec extends LJToken
+  case object TSeq extends LJToken("begin")
 
-  case object TSet extends LJToken
+  case object TRec extends LJToken("object")
 
-  case object TIndex extends LJToken
+  case object TSet extends LJToken("set!")
 
-  case object TDel extends LJToken
+  case object TIndex extends LJToken("get-field")
 
-  case object TUpdate extends LJToken
+  case object TDel extends LJToken("delete-field")
 
-  case object TWhile extends LJToken
+  case object TUpdate extends LJToken("update-field")
 
-  case object TBreak extends LJToken
+  case object TWhile extends LJToken("while")
 
-  case object TTry extends LJToken
+  case object TBreak extends LJToken("break")
 
-  case object TIf extends LJToken
+  case object TTry extends LJToken("try")
 
-  case object TThrow extends LJToken
+  case object TIf extends LJToken("if")
+
+  case object TThrow extends LJToken("throw")
 
 }
