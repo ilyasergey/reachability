@@ -38,7 +38,6 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
   type ControlState = PState
 
   def step(state: ControlState, k: Kont, frames: Kont): Set[(StackAction[Frame], ControlState)] = {
-
     state match {
 
       // Administrative states

@@ -205,8 +205,8 @@ object LJSyntax {
 
     override def equals(obj: Any) = obj match {
       case se: StampedExp => se.stamp == this.stamp
-      case x: AnyRef => this eq x
-      case x => x equals this
+      case y: AnyRef => this eq y
+      case y => y equals this
     }
   }
 

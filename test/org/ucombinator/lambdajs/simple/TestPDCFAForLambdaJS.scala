@@ -13,7 +13,7 @@ object TestPDCFAForLambdaJS {
 
   import LJSyntax._
 
-  val args_1_PDCFA_GC = Array("--pdcfa", "--k", "0", "--interrupt-after", "10000", "--dump-statistics", "--dump-graph", "--verbose", "id-example")
+  val args_1_PDCFA_GC = Array("--pdcfa", "--k", "1", "--interrupt-after", "10000", "--dump-statistics", "--dump-graph", "--verbose", "id-example")
 
   // Examples
   val app = Fun(List(Var("f", 1), Var("x", 2)), App(Var("f", 1), List(Var("x", 2)), 3), 0)
@@ -23,10 +23,16 @@ object TestPDCFAForLambdaJS {
   val example2 = Let(Var("z", 6), EInt(42), App(app, List(id, Var("z", 6)), 8), 7)
 
   val text3 = """
-  (let ((z (lambda (y) y))
-        (g (lambda (f x) (f x))))
+  (let ((g (lambda (f x) (f x)))
+        (z (lambda (y) y)))
         (g z 42))
   """
+
+  val text4 = """
+  (let ((z 42))
+       ((lambda (f x) (f x)) (lambda (y) y) z))
+  """
+
 
   def main(args: Array[String]) {
     val opts = CFAOptions.parse(args_1_PDCFA_GC)

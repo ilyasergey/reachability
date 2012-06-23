@@ -26,9 +26,6 @@ with DSGAnalysisRunner with LambdaJSGarbageCollector {
 
   override def printGCDebug = false
 
-
-  override def simplify = true
-
   def runPDCFA(program: Term) {
     // todo implement me!
     val sizeExp = 0
