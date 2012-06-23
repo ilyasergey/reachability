@@ -8,6 +8,9 @@ object LambdaLJParserTest {
 
   def main(args: Array[String]) {
 
+    parseOp()
+    parseAsgn()
+    parseLabel()
     parseIf()
     parseBegin()
     parseApp()
@@ -24,7 +27,7 @@ object LambdaLJParserTest {
   }
 
   def parseAndPrint(text: String) {
-    val parser = new LambdaJSParser
+    val parser = new LambdaJSShittyParser
     val result = parser.parseAll(text)
 
     println(result)
@@ -32,6 +35,24 @@ object LambdaLJParserTest {
 
   def parseLambda() {
     parseAndPrint("(lambda (x y z) x)")
+  }
+
+  def parseAsgn() {
+    val text = """
+    (set!
+      $4
+      #t)
+    """
+    parseAndPrint(text)
+  }
+
+  def parseOp() {
+    val text = """
+   (if (=== (deref $3) null)
+      #f
+      #t)
+    """
+    parseAndPrint(text)
   }
 
   def parseInt() {
@@ -91,6 +112,15 @@ object LambdaLJParserTest {
   def parseIf() {
     val text = """
     (if #t 42 "$code")
+    """
+    parseAndPrint(text)
+  }
+
+  def parseLabel() {
+    val text = """
+    (label $return
+      (break $return
+        undefined))
     """
     parseAndPrint(text)
   }

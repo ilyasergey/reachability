@@ -41,7 +41,7 @@ class LambdaJSLexer extends Lexical with RegexParsers {
   def identOrOperator: Parser[LJToken] = regex(new Regex("([^.#; \\t\\r\n()',`\"][^; \\t\\r\\n()',`\"]*|[.][^; \\t\\r\\n()',`\"]+)")) ^^
     (str => if (operators.contains(str)) TOp(str)
     else {
-      if (str.startsWith("$")) TGlobalIdent(str) else TIdent(str)
+      TIdent(str)
     })
 
   def token: Parser[LJToken] = (
@@ -60,8 +60,9 @@ class LambdaJSLexer extends Lexical with RegexParsers {
       | "alloc" ^^^ TRef
       | "deref" ^^^ TDeref
       | "while" ^^^ TWhile
+      | "label" ^^^ TLabel
       | "break" ^^^ TBreak
-      | "set!" ^^^ TSet
+      | "set!" ^^^ TAsgn
       | "begin" ^^^ TSeq
       | "object" ^^^ TRec
       | "throw" ^^^ TThrow
@@ -107,61 +108,32 @@ object LambdaJSTokens extends Tokens {
   )
 
   abstract sealed class LJToken(val chars: String) extends Token
-
   case object TTrue extends LJToken("true")
-
   case object TFalse extends LJToken("false")
-
   case object TUndef extends LJToken("undefined")
-
   case object TNull extends LJToken("null")
-
   case object LPar extends LJToken("(")
-
   case object RPar extends LJToken(")")
-
   case class TString(s: String) extends LJToken(s)
-
-  abstract class LJIdent(id: String) extends LJToken(id)
-
-  case class TIdent(id: String) extends LJIdent(id)
-
-  case class TGlobalIdent(id: String) extends LJIdent(id)
-
+  case class TIdent(id: String) extends LJToken(id)
   case class TOp(op: String) extends LJToken(op)
-
   case class TFloat(f: Float) extends LJToken(f.toString)
-
   case class TInt(n: Int) extends LJToken(n.toString)
-
   case object TLambda extends LJToken("lambda")
-
   case object TLet extends LJToken("let")
-
   case object TDeref extends LJToken("deref")
-
   case object TRef extends LJToken("alloc")
-
   case object TSeq extends LJToken("begin")
-
   case object TRec extends LJToken("object")
-
-  case object TSet extends LJToken("set!")
-
+  case object TLabel extends LJToken("label")
+  case object TAsgn extends LJToken("set!")
   case object TIndex extends LJToken("get-field")
-
   case object TDel extends LJToken("delete-field")
-
   case object TUpdate extends LJToken("update-field")
-
   case object TWhile extends LJToken("while")
-
   case object TBreak extends LJToken("break")
-
   case object TTry extends LJToken("try")
-
   case object TIf extends LJToken("if")
-
   case object TThrow extends LJToken("throw")
 
 }

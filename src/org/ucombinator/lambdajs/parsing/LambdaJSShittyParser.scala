@@ -1,18 +1,16 @@
 package org.ucombinator.lambdajs.parsing
 
-import org.ucombinator.lambdajs.syntax.LJSyntax._
 import org.ucombinator.lambdajs.parsing.LambdaJSTokens._
-import util.matching.Regex
-import util.parsing.combinator.{Parsers, RegexParsers}
-import util.parsing.input.Reader
+import util.parsing.combinator.Parsers
+import org.ucombinator.lambdajs.syntax.LJSyntax._
 
 /**
  * @author ilya
  */
 
-class LambdaJSParser extends Parsers {
+class LambdaJSShittyParser extends Parsers {
 
-  import LambdaJSParser._
+  import LambdaJSShittyParser._
 
   // Default constructor
   type Elem = LJToken
@@ -26,15 +24,12 @@ class LambdaJSParser extends Parsers {
   def boundIdentifier(bv: Map[String, Var]): Parser[String] = acceptIf {
     case TIdent(s) => isBound(s, bv)
     case _ => false
-  }(s => {
-    val msg = "Unbound identifier " + s
-    msg
-  }) ^^ {
+  }(s => "Unbound identifier " + s) ^^ {
     case TIdent(s) => s
   }
 
-  def globIdent: Parser[String] = acceptIf(_.isInstanceOf[TGlobalIdent])(_ => "Global identifier expected") ^^ {
-    case TGlobalIdent(s) => s
+  def ident: Parser[String] = acceptIf(_.isInstanceOf[TIdent])(s => "Not an identifier " + s) ^^ {
+    case i: TIdent => i.id
   }
 
   def op: Parser[String] = acceptIf(_.isInstanceOf[TOp])(_ => "Operation expected") ^^ {
@@ -55,16 +50,12 @@ class LambdaJSParser extends Parsers {
 
   def wrapped[T](p: Parser[T]): Parser[T] = LPar ~> p <~ RPar
 
-  def binder: Parser[LJIdent] = acceptIf {
-    case TGlobalIdent(_) | TIdent(_) => true
-    case _ => false
-  }(_ => "Not an identifier") ^^ (x => x.asInstanceOf[LJIdent])
+  def binder: Parser[TIdent] = acceptIf (_.isInstanceOf[TIdent])(_ => "Not an identifier") ^^ (x => x.asInstanceOf[TIdent])
 
   def params: Parser[(List[Var], Set[(String, Var)])] =
     wrapped(rep(binder)) ^^ (ids => {
       val vars = ids.map {
         case TIdent(s) => Var(s, newStamp())
-        case TGlobalIdent(s) => Var(s, 0)
       }
       val newBound = vars.filter(_.stamp > 0).map(v => (v.name, v)).toSet
       (vars, newBound)
@@ -80,7 +71,7 @@ class LambdaJSParser extends Parsers {
     case (vars, newBound) => exp(bv ++ newBound) ^^ (e => (vars, e))
   }
 
-  def binding(bv: Map[String, Var]): Parser[(LJIdent, Exp)] =
+  def binding(bv: Map[String, Var]): Parser[(TIdent, Exp)] =
     wrapped(binder ~ exp(bv)) ^^ {
       case b ~ e => (b, e)
     }
@@ -89,17 +80,47 @@ class LambdaJSParser extends Parsers {
     wrapped(rep(binding(bv))) ^^ {
       case bs => {
         val pairs = bs.map {
-          case (TIdent(s), e) => (Var(s, newStamp()), e)
-          case (TGlobalIdent(s), e) => (Var(s, 0), e)
+          // Let does not ensure uniqueness of identifiers
+          case (TIdent(s), e) => (Var(s, 0), e)
         }
-        val newBound = pairs.map(_._1).filter(_.stamp > 0).map(v => (v.name, v)).toSet
-        (pairs, newBound)
+        // val newBound = pairs.map(_._1).filter(_.stamp > 0).map(v => (v.name, v)).toSet
+        (pairs, Set())
       }
     }
 
   def let(bv: Map[String, Var]): Parser[(List[(Var, Exp)], Exp)] = bindings(bv) >> {
-    case (pairs, newBound) => exp(bv ++ newBound) ^^ (e => (pairs, e))
+    case (pairs, newBound) => exp(bv/* ++ newBound*/) ^^ (e => (pairs, e))
   }
+
+  def realExp(bv: Map[String, Var]): Parser[Exp] = (
+      TRec ~> rec(bv) ^^ (es => Record(es, newStamp()))
+    | TLambda ~> lambda(bv) ^^ (pb => Fun(pb._1, pb._2, newStamp()))
+    | TLet ~> let(bv) ^^ (be => be._1 match {
+        case Nil => be._2
+        case _ => {
+          val (x, e) :: t = be._1.reverse
+          val body = be._2
+          t.foldLeft(Let(x, e, body, newStamp())) {
+            case (result, (x1, e1)) => Let(x1, e1, result, newStamp())
+
+          }
+        }})
+    | TIndex ~> (exp(bv) ~ exp(bv)) ^^ (p => Lookup(p._1, p._2, newStamp()))
+    | TUpdate ~> (exp(bv) ~ exp(bv) ~ exp(bv)) ^^ {case x ~ y ~ z => Update(x, y, z, newStamp())}
+    | TDel ~> (exp(bv) ~ exp(bv)) ^^ {case x ~ y => Del(x, y, newStamp())}
+    | TSeq ~> (exp(bv) ~ exp(bv)) ^^ {case x ~ y => Seq(x, y, newStamp())}
+    | TIf ~> (exp(bv) ~ exp(bv) ~ exp(bv)) ^^ {case x ~ y ~ z => If(x, y, z, newStamp())}
+    | TLabel ~> (ident ~ exp(bv)) ^^ {case l ~ e => Labelled(l, e, newStamp())}
+    | TBreak ~> (ident ~ exp(bv)) ^^ {case l ~ e => Break(l, e, newStamp())}
+    | TWhile ~> (exp(bv) ~ exp(bv)) ^^ {case c ~ b => While(c, b, newStamp())}
+    | TAsgn ~> (exp(bv) ~ exp(bv)) ^^ {case e1 ~ e2 => Asgn(e1, e2, newStamp())}
+    | TRef ~> exp(bv) ^^ (e => Ref(e, newStamp()))
+    | TDeref ~> exp(bv) ^^ (e => Deref(e, newStamp()))
+    | TThrow ~> exp(bv) ^^ (e => Throw(e, newStamp()))
+    | op ~ rep(exp(bv)) ^^ {case o ~ args => OpApp(o, args, newStamp())}
+    // todo implement try-catch-finally
+    | exp(bv) ~ rep(exp(bv)) ^^ {case e ~ es => App(e, es, newStamp())}
+  )
 
   /**
    * Lambda JS expression parser
@@ -108,32 +129,16 @@ class LambdaJSParser extends Parsers {
    * @return context-sensitive parser for expressions
    */
   def exp(bv: Map[String, Var]): Parser[Exp] = (
-    string ^^ EString
+        wrapped(realExp(bv))
+      | string ^^ EString
       | int ^^ EInt
       | float ^^ EFloat
       | TTrue ^^^ EBool(true)
       | TFalse ^^^ EBool(false)
       | TUndef ^^^ EUndef
       | TNull ^^^ ENull
-      | (LPar ~ TRec) ~> rec(bv) <~ RPar ^^ (es => Record(es, newStamp()))
-      | (LPar ~ TLambda) ~> lambda(bv) <~ RPar ^^ (pb => Fun(pb._1, pb._2, newStamp()))
-      | (LPar ~ TLet) ~> let(bv) <~ RPar ^^ (be => {
-          val (x, e) :: t = be._1.reverse
-          val body = be._2
-          t.foldLeft(Let(x, e, body, newStamp())) {
-            case (result, (x1, e1)) => Let(x1, e1, result, newStamp())
-          }
-        })
-      | (LPar ~ TIndex) ~> (exp(bv) ~ exp(bv)) <~ RPar ^^ (p => Lookup(p._1, p._2, newStamp()))
-      | (LPar ~ TUpdate) ~> (exp(bv) ~ exp(bv) ~ exp(bv)) <~ RPar ^^ {case x ~ y ~ z => Update(x, y, z, newStamp())}
-      | (LPar ~ TDel) ~> (exp(bv) ~ exp(bv)) <~ RPar ^^ {case x ~ y => Del(x, y, newStamp())}
-      | (LPar ~ TSeq) ~> (exp(bv) ~ exp(bv)) <~ RPar ^^ {case x ~ y => Seq(x, y, newStamp())}
-      | (LPar ~ TIf) ~> (exp(bv) ~ exp(bv) ~ exp(bv)) <~ RPar ^^ {case x ~ y~z => If(x, y, z, newStamp())}
-
-
-      | globIdent ^^ (s => Var(s, 0))
       | boundIdentifier(bv) ^^ (s => bv(s))
-      | wrapped(exp(bv) ~ rep(exp(bv))) ^^ {case e ~ es => App(e, es, newStamp())}
+      | ident ^^ (s => Var(s, 0))
     )
 
 
@@ -155,7 +160,7 @@ class LambdaJSParser extends Parsers {
 
 }
 
-object LambdaJSParser {
+object LambdaJSShittyParser {
   private var maxSerialNumber = 1
 
   def newStamp(): Int = {
