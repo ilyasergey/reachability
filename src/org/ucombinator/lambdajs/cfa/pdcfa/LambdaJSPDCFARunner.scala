@@ -85,7 +85,7 @@ with DSGAnalysisRunner with LambdaJSGarbageCollector {
   def alloc(s: ControlState) = s match {
     case Apply(_, pr) =>
       k match {
-        case 0 => (None, Nil)
+        case 0 => (None, List(pr))
         case 1 => (None, List(pr))
         case _ => throw new Exception("Analysis not implemented for k greater than 1 (" + k + ")")
       }
