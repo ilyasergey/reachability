@@ -41,7 +41,11 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
     state match {
 
       // Administrative states
-      case PError(_) | PFinal(_, _) | PSwitch(_, _, _, _) => Set()
+      case p@PError(_) => {
+        Set()
+      }
+      case PFinal(_, _) => Set()
+      case PSwitch(_, _, _, _) => Set()
 
       // Eval states
       case Eval(store, clo) => clo match {
@@ -70,7 +74,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
         case OpClo(op, c :: tail) => withPush(Eval(store, c), OpFrame(op, List(), tail))
         case _ => {
           val msg = "No transition for eval-state\\n" + state + "\\nand a stack\\n" + k
-          Set((Eps, PError(msg)))
+          Set((Eps, error(msg)))
         }
       }
 
@@ -89,7 +93,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
           withEps(Eval(putMany(store, as.zip(vs.map(Set(_)))), GroundClo(e, rho1)))
         } else {
           val msg = "Wrong number of arguments in the state\\n" + state + "\\nand a stack\\n" + k
-          Set((Eps, PError(msg)))
+          Set((Eps, error(msg)))
         }
         case PR_REC_REF(RecValue(entries), sv) => {
           sv match {
@@ -97,7 +101,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
             case StringTop => {
               val msg = "Alarm! StringTop is used as a reference for a record in state \\n" + state
               System.err.println(msg)
-              Set((Eps, PError(msg)))
+              Set((Eps, error(msg)))
             }
             // Fetching a particular field
             case s@StringValue(_) => entries.filter {
@@ -117,7 +121,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
             case StringTop => {
               val msg = "Alarm! StringTop is used as a reference for record update in state \\n" + state
               System.err.println(msg)
-              Set((Eps, PError(msg)))
+              Set((Eps, error(msg)))
             }
             // Fetching a particular field
             case s@StringValue(_) => {
@@ -134,7 +138,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
             case StringTop => {
               val msg = "Alarm! StringTop is used as a reference for record delete in state \\n" + state
               System.err.println(msg)
-              Set((Eps, PError(msg)))
+              Set((Eps, error(msg)))
             }
             // Fetching a particular field
             case s@StringValue(_) => {
@@ -164,19 +168,21 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
         case PR_DEREF(AddrValue(a)) => {
           if (get(store, a).isEmpty) {
             val msg = "Null pointer " + a
-            withEps(PError(msg))
+            withEps(error(msg))
           } else {
             for (v <- get(store, a))
             yield (Eps, Cont(store, v))
           }
         }
 
-        case PR_ASGN(AddrValue(a), v) => withEps(Cont(put(store, a, Set(v)), v))
+        case PR_ASGN(AddrValue(a), v) => {
+          withEps(Cont(put(store, a, Set(v)), v))
+        }
 
         case PR_THROW(v) => k match {
           case Nil => {
             val msg = "Uncaught exception with value " + v.toString
-            withEps(PError(msg))
+            withEps(error(msg))
           }
           case (f@TryCatchFrame(x, GroundClo(e, rho))) :: kk => {
             val a = alloc(state, x)
@@ -196,7 +202,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
         case PR_BREAK(l, v) => k match {
           case Nil => {
             val msg = "Unhandled break with label " + l + " and value " + v.toString
-            withEps(PError(msg))
+            withEps(error(msg))
           }
           case (f@TryCatchFrame(_, _)) :: kk => {
             withPop(Eval(store, BreakClo(l, ValueClo(v))), f)
@@ -217,7 +223,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
         }
         case _ => {
           val msg = "No transition for apply-state \\n" + state + "\\nand a stack\\n" + k
-          Set((Eps, PError(msg)))
+          Set((Eps, error(msg)))
         }
 
       }
@@ -303,16 +309,20 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
 
           case _ => {
             val msg = "No transition for cont-state \\n" + state + "\\nand a stack\\n" + k
-            Set((Eps, PError(msg)))
+            Set((Eps, error(msg)))
           }
         }
       }
 
       case _ => {
         val msg = "No transition for state \\n" + state + "\\nand a stack\\n" + k
-        Set((Eps, PError(msg)))
+        Set((Eps, error(msg)))
       }
     }
+  }
+
+  def error(msg: String): PError = {
+    PError(msg)
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////

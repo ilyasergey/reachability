@@ -1,0 +1,76 @@
+(let
+ (($global (alloc (object))))
+ (let
+  ((@Object_prototype (alloc (object))))
+  (let
+   ((@Function_prototype (alloc (object))))
+   (let
+    ((@isRefComb (lambda (f e)
+                  (if (=== (typeof e) "location")
+                   (f (deref e))
+                   #f))))
+    (let
+     ((@toObject (lambda (x)
+                  (if (=== (typeof x) "undefined")
+                   (throw ($makeException "TypeError" "toObject received undefined"))
+                   (if (=== x null)
+                    (throw ($makeException "TypError" "toObject received null"))
+                    (if (=== (typeof x) "boolean")
+                     (alloc (object ("$proto" "$Boolean.prototype")
+                                    ("$class" "Boolean")
+                                    ("$value" x)))
+                     (if (=== (typeof x) "number")
+                      (alloc (object ("$proto" "$Number.prototype")
+                                     ("$class" "Number")
+                                     ("$value" x)))
+                      (if (=== (typeof x) "string")
+                       (alloc (object ("$proto" "$String.prototype")
+                                      ("$class" "String")
+                                      ("$value" x)))
+                       x))))))))
+     (let
+      (($makeException (lambda (name msg)
+                        (@newDirect (get-field
+                                     $global
+                                     name) (alloc (object ("0" msg)
+                                                          ("length" 1.0)
+                                                          ("$isArgs" #t)))))))
+      (let
+       ((@newDirect (lambda ($constr @argObj)
+                     (if (if (if (=== (typeof $constr) "location")
+                              (=== (typeof (deref $constr)) "object")
+                              #f)
+                          (=== (typeof (get-field
+                                        (deref $constr)
+                                        "$code")) "lambda")
+                          #f)
+                          (let
+                                                 (($protoField (get-field
+                                                                (deref $constr)
+                                                                "prototype")))
+                                                 (let
+                                                  (($protoObj (if (if (=== (typeof $protoField) "location")
+                                                                   (=== (typeof (deref $protoField)) "object")
+                                                                   #f)
+                                                               $protoField
+                                                               @Object_prototype)))
+                                                  (let
+                                                   (($newObj (alloc (object ("$constructing" #t)
+                                                                            ("$class" "Object")
+                                                                            ("$proto" $protoField)))))
+                                                   (let
+                                                    ((newResult ((get-field
+                                                                  (deref $constr)
+                                                                  "$code") $newObj @argObj)))
+                                                    (if (if (=== (typeof newResult) "location")
+                                                         (=== (typeof (deref newResult)) "object")
+                                                         #f)
+                                                     newResult
+                                                     (begin
+                                                      (set!
+                                                       $newObj
+                                                       (delete-field (deref $newObj)
+                                                        "$constructing"))
+                                                      $newObj))))))
+                          undefined))))
+          undefined)))))))

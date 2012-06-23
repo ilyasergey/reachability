@@ -14,7 +14,7 @@ class LambdaJSPDCFARunner(opts: CFAOptions) extends LambdaJSCFARunner(opts) with
 with DSGAnalysisRunner with LambdaJSGarbageCollector {
   import LJSyntax._
 
-  type Addr = (Option[Var], List[PotentialRedex])
+  type Addr = (Option[Var], List[Int])
 
   type Term = Exp
 
@@ -57,6 +57,9 @@ with DSGAnalysisRunner with LambdaJSGarbageCollector {
         if (isVerbose) {
           println("Has final state.\n")
         }
+        if (res.contains("ErrorState")) {
+          println("Has errors.\n")
+        }
       } else if (!simplify) {
         println("Warning: no final state!\n")
       }
@@ -84,8 +87,8 @@ with DSGAnalysisRunner with LambdaJSGarbageCollector {
   def alloc(s: ControlState) = s match {
     case Apply(_, pr) =>
       k match {
-        case 0 => (None, List(pr))
-        case 1 => (None, List(pr))
+        case 0 => (None, List(pr.hashCode()))
+        case 1 => (None, List(pr.hashCode()))
         case _ => throw new Exception("Analysis not implemented for k greater than 1 (" + k + ")")
       }
     case _ => throw new Exception("Allocation in a wrong state: " + s + "")
@@ -97,7 +100,7 @@ with DSGAnalysisRunner with LambdaJSGarbageCollector {
         (Some(Var("SingleAddr", 0)), Nil)
       } else k match {
         case 0 => (Some(x), Nil)
-        case 1 => (Some(x), List(pr))
+        case 1 => (Some(x), List(pr.hashCode()))
         case _ => throw new Exception("Analysis not implemented for k greater than 1 (" + k + ")")
       }
     case _ => throw new Exception("Allocation in a wrong state: " + s + "")
