@@ -8,17 +8,18 @@ object LambdaLJParserTest {
 
   def main(args: Array[String]) {
 
+    parseLet()
+    parseApp()
     parseOp()
-    parseAsgn()
     parseLabel()
     parseIf()
-    parseBegin()
-    parseApp()
-    parseDelete()
     parseUpdate()
     parseGet()
-    parseLet()
+    parseBegin()
+    parseAsgn()
+    parseDelete()
     parseRec()
+    parseRec2()
     parseLambda()
     parseInt()
     parseString()
@@ -27,8 +28,8 @@ object LambdaLJParserTest {
   }
 
   def parseAndPrint(text: String) {
-    val parser = new LambdaJSShittyParser
-    val result = parser.parseAll(text)
+    val parser = new LambdaJSParser
+    val result = parser.parseText(text)
 
     println(result)
   }
@@ -72,6 +73,13 @@ object LambdaLJParserTest {
     (lambda (x) (object ("$proto" "$Boolean.prototype")
                         ("$class" "Boolean")
                         ("$value" x)))
+    """
+    parseAndPrint(rec)
+  }
+
+  def parseRec2() {
+    val rec = """
+    (lambda (x) (object))
     """
     parseAndPrint(rec)
   }

@@ -3,7 +3,7 @@ package org.ucombinator.lambdajs.simple
 import org.ucombinator.util.CFAOptions
 import org.ucombinator.lambdajs.cfa.pdcfa.LambdaJSPDCFARunner
 import org.ucombinator.lambdajs.syntax.LJSyntax
-import org.ucombinator.lambdajs.parsing.LambdaJSShittyParser
+import org.ucombinator.lambdajs.parsing.LambdaJSParser
 
 /**
  * @author ilya
@@ -38,8 +38,8 @@ object TestPDCFAForLambdaJS {
   }
 
   def parseExample(text: String) = {
-    val parser = new LambdaJSShittyParser
-    val result = parser.parseAll(text)
+    val parser = new LambdaJSParser
+    val result = parser.parseText(text)
     result
   }
 

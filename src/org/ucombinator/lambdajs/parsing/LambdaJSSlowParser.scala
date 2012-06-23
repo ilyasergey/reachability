@@ -8,9 +8,9 @@ import org.ucombinator.lambdajs.syntax.LJSyntax._
  * @author ilya
  */
 
-class LambdaJSShittyParser extends Parsers {
+class LambdaJSSlowParser extends Parsers {
 
-  import LambdaJSShittyParser._
+  import LambdaJSSlowParser._
 
   // Default constructor
   type Elem = LJToken
@@ -160,7 +160,7 @@ class LambdaJSShittyParser extends Parsers {
 
 }
 
-object LambdaJSShittyParser {
+object LambdaJSSlowParser {
   private var maxSerialNumber = 1
 
   def newStamp(): Int = {

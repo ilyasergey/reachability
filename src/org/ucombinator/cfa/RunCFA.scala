@@ -39,7 +39,7 @@ import org.ucombinator.scheme.cfa.kcfa.KCFAAnalysisRunner
 import org.ucombinator.scheme.cfa.pdcfa.PDCFAAnalysisRunner
 import AnalysisType._
 import org.ucombinator.lambdajs.cfa.pdcfa.LambdaJSPDCFARunner
-import org.ucombinator.lambdajs.parsing.LambdaJSShittyParser
+import org.ucombinator.lambdajs.parsing.{LambdaJSParser, LambdaJSSlowParser}
 
 /**
  * @author ilya
@@ -116,7 +116,7 @@ object RunCFA {
           System.err.println("Parsing LambdaJS program...")
         }
 
-        val parser = new LambdaJSShittyParser
+        val parser = new LambdaJSParser
 
         val firstTime = (new java.util.Date()).getTime
         val program: Exp = parser.parseAllIn(filename)
@@ -132,7 +132,7 @@ object RunCFA {
           System.out.println("\n")
         }
 
-        // runner.runPDCFA(program)
+        runner.runPDCFA(program)
       }
     }
 
