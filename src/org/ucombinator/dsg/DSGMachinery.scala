@@ -60,7 +60,7 @@ trait DSGMachinery {
    * denoted as 'f' in the paper
    */
 
-  def iterateDSG(dsg: DSG, helper: NewDSGHelper): (DSG, NewDSGHelper) = dsg match {
+  def iterateDSG(dsg: DSG, helper: NewDSGHelper): (DSG, NewDSGHelper, Boolean) = dsg match {
     case DSG(ss, ee, s0) => {
       val newNodesAndEdges: Set[(S, Edge)] = for {
         s <- ss
@@ -91,12 +91,13 @@ trait DSGMachinery {
 
       // E' = ...
       val ee1 = (ee ++ newEdges)
+      val hasNewEdges = !newEdges.subsetOf(ee)
 
 
       println(progressPrefix + " Dyck state graph: " + ss1.size + " nodes and " + ee1.size + " edges.")
 
       // return updated graph
-      (DSG(ss1, ee1, s0), helper)
+      (DSG(ss1, ee1, s0), helper, hasNewEdges)
     }
   }
 
@@ -108,22 +109,22 @@ trait DSGMachinery {
     val initS = initial._1
 
     // Compute the LFP(iterateDSG) recursively
-    def eval(first: DSG, next: DSG, helper: NewDSGHelper): (DSG, NewDSGHelper) = {
-      if (first == next) {
+    def eval(first: DSG, next: DSG, helper: NewDSGHelper, hasNew: Boolean): (DSG, NewDSGHelper) = {
+      if (!hasNew) {
         (next, helper)
       } else if (interrupt && next.edges.size > interruptAfter) {
         (next, helper)
       } else {
-        val (next2, helper2) = iterateDSG(next, helper)
-        eval(next, next2, helper2)
+        val (next2, helper2, moreNew) = iterateDSG(next, helper)
+        eval(next, next2, helper2, moreNew)
       }
     }
 
     val firstDSG = DSG(Set(initS), Set(), initS)
     val firstHelper = new NewDSGHelper
-    val (nextDSG, nextHelper) = iterateDSG(firstDSG, firstHelper)
+    val (nextDSG, nextHelper, hasNew) = iterateDSG(firstDSG, firstHelper)
 
-    val (resultDSG, _) = eval(firstDSG, nextDSG, nextHelper)
+    val (resultDSG, _) = eval(firstDSG, nextDSG, nextHelper, hasNew)
     resultDSG
   }
 
