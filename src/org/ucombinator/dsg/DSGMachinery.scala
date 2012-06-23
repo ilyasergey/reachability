@@ -60,10 +60,10 @@ trait DSGMachinery {
    * denoted as 'f' in the paper
    */
 
-  def iterateDSG(dsg: DSG, helper: NewDSGHelper): (DSG, NewDSGHelper, Boolean) = dsg match {
+  def iterateDSG(dsg: DSG, helper: NewDSGHelper, toVisit: Set[S]): (DSG, NewDSGHelper, Boolean, Set[S]) = dsg match {
     case DSG(ss, ee, s0) => {
       val newNodesAndEdges: Set[(S, Edge)] = for {
-        s <- ss
+        s <- toVisit
         kont <- helper.getRequiredKont(s, s0)
         possibleFrames = helper.getPossibleStackFrames(s)
         (g, s1) <- step(s, kont, possibleFrames)
@@ -97,7 +97,7 @@ trait DSGMachinery {
       println(progressPrefix + " Dyck state graph: " + ss1.size + " nodes and " + ee1.size + " edges.")
 
       // return updated graph
-      (DSG(ss1, ee1, s0), helper, hasNewEdges)
+      (DSG(ss1, ee1, s0), helper, hasNewEdges, newStates)
     }
   }
 
@@ -109,22 +109,22 @@ trait DSGMachinery {
     val initS = initial._1
 
     // Compute the LFP(iterateDSG) recursively
-    def eval(first: DSG, next: DSG, helper: NewDSGHelper, hasNew: Boolean): (DSG, NewDSGHelper) = {
+    def eval(first: DSG, next: DSG, helper: NewDSGHelper, hasNew: Boolean, statesToVisit: Set[S]): (DSG, NewDSGHelper) = {
       if (!hasNew) {
         (next, helper)
       } else if (interrupt && next.edges.size > interruptAfter) {
         (next, helper)
       } else {
-        val (next2, helper2, moreNew) = iterateDSG(next, helper)
-        eval(next, next2, helper2, moreNew)
+        val (next2, helper2, moreNew, newToVisit) = iterateDSG(next, helper, statesToVisit)
+        eval(next, next2, helper2, moreNew, newToVisit)
       }
     }
 
     val firstDSG = DSG(Set(initS), Set(), initS)
     val firstHelper = new NewDSGHelper
-    val (nextDSG, nextHelper, hasNew) = iterateDSG(firstDSG, firstHelper)
+    val (nextDSG, nextHelper, hasNew, toVisit) = iterateDSG(firstDSG, firstHelper, Set(initS))
 
-    val (resultDSG, _) = eval(firstDSG, nextDSG, nextHelper, hasNew)
+    val (resultDSG, _) = eval(firstDSG, nextDSG, nextHelper, hasNew, toVisit)
     resultDSG
   }
 
@@ -226,9 +226,12 @@ trait DSGMachinery {
       frames.toList
     }
 
+    def getEpsNextStates(s: S): Nodes = gets(epsSuccs, s)
+
     ///////////////// Inner methods ////////////////////
 
     private def getEpsPredStates(s: S): Nodes = gets(epsPreds, s)
+
 
     /**
      * "Equalize" eps-predecessors & eps-successors
