@@ -86,6 +86,8 @@ trait DSGMachinery {
 
       helper.update(newEdges)
 
+      val newToVisit = newStates ++ newStates.flatMap(s => helper.getEpsNextStates(s))
+
       // S' = ...
       val ss1: Nodes = ss ++ newStates + s0
 
@@ -97,7 +99,7 @@ trait DSGMachinery {
       println(progressPrefix + " Dyck state graph: " + ss1.size + " nodes and " + ee1.size + " edges.")
 
       // return updated graph
-      (DSG(ss1, ee1, s0), helper, hasNewEdges, newStates)
+      (DSG(ss1, ee1, s0), helper, hasNewEdges, newToVisit)
     }
   }
 

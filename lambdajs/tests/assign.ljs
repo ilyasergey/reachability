@@ -1,0 +1,6 @@
+(let ((@Object_prototype (alloc (object))))
+  (begin
+    (set!
+         @Object_prototype
+         (deref @Object_prototype))
+     42))
