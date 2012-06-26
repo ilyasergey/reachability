@@ -117,7 +117,7 @@ class LambdaJSSlowParser extends Parsers {
     | TRef ~> exp(bv) ^^ (e => Ref(e, newStamp()))
     | TDeref ~> exp(bv) ^^ (e => Deref(e, newStamp()))
     | TThrow ~> exp(bv) ^^ (e => Throw(e, newStamp()))
-    | op ~ rep(exp(bv)) ^^ {case o ~ args => OpApp(o, args, newStamp())}
+    | op ~ rep(exp(bv)) ^^ {case o ~ args => OpApp(Op(o, 0), args, newStamp())}
     // todo implement try-catch-finally
     | exp(bv) ~ rep(exp(bv)) ^^ {case e ~ es => App(e, es, newStamp())}
   )

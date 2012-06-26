@@ -21,15 +21,21 @@ class LambdaJSParser {
 
   def success[T](e: T, rest: List[LJToken]): Result[T] = (Left(e), rest)
 
-  def failure[T](s: String, rest: List[LJToken]): Result[Nothing] = (Right(s), rest)
+  def failure[T](s: String, rest: List[LJToken]): Result[Nothing] = {
+    (Right(s), rest)
+  }
+
+  val RESERVED_NAMES: Set[String] = Set(
+    "$makeException", "@newDirect"
+  )
 
   def isBound(s: String, map: Map[String, Var]): Boolean = map.keySet.contains(s)
+
 
   def isFailure[T](r: Result[T]) = r match {
     case (Right(_), _) => true
     case _ => false
   }
-
 
   /**
    * Close parenthesis
@@ -65,6 +71,7 @@ class LambdaJSParser {
     case _ => failure("'(' expected", input)
   }
 
+
   def lambda(input: List[LJToken], bv: Map[String, Var]): Result[Exp] = {
     val psResult = closePar(params(input))
     if (isFailure(psResult)) {
@@ -85,7 +92,6 @@ class LambdaJSParser {
       }
     }
   }
-
 
   def entry(input: List[LJToken], bv: Map[String, Var]): Result[(String, Exp)] = input match {
     case Nil => failure("No entry", input)
@@ -117,6 +123,10 @@ class LambdaJSParser {
     success(Record(ets.reverse, newStamp()), rest)
   }
 
+  def isReservedName(name: String): Boolean = {
+    RESERVED_NAMES.contains(name)
+  }
+
 
   def binding(input: List[LJToken], bv: Map[String, Var]): Result[(Var, Exp)] = input match {
     case Nil => failure("No binding", input)
@@ -126,7 +136,12 @@ class LambdaJSParser {
         failure("Binding expression failed", getRest(result))
       } else {
         val (e, rest1) = extract(result)
-        closePar(success((Var(name, 0), e), rest1))
+        val binder = if (isReservedName(name)) {
+          Var(name, 0)
+        } else {
+          Var(name, newStamp())
+        }
+        closePar(success((binder, e), rest1))
       }
     }
   }
@@ -146,11 +161,13 @@ class LambdaJSParser {
           rest = rr
         }
       }
+
       // done with bindings
+      val newBound = bindings.map(_._1).filter(_.stamp > 0).map(v => (v.name, v)).toSet
 
       rest match {
         case RPar :: rest1 => {
-          val eres = exp(rest1, bv)
+          val eres = exp(rest1, bv ++ newBound)
           if (isFailure(eres)) {
             failure("Faled body parsing expression", input)
           } else {
@@ -351,7 +368,8 @@ class LambdaJSParser {
       failure("Faled parsing several expressions", input)
     } else {
       val (ee, rest) = extract(result)
-      success(OpApp(op, ee, newStamp()), rest)
+      val stamp = newStamp()
+      success(OpApp(Op(op, stamp), ee, stamp), rest)
     }
   }
 
@@ -371,6 +389,7 @@ class LambdaJSParser {
     }
   }
 
+  val eval_bomb = "eval-semantic-bomb"
 
   /**
    * Parse complex expressions
@@ -402,25 +421,36 @@ class LambdaJSParser {
 
   def exp(input: List[LJToken], bv: Map[String, Var]): Result[Exp] = {
     input match {
-        case Nil => failure("Undexpected end of input", input)
-        case h :: t => h match {
-          case TString(s) => success(EString(s), t)
-          case TInt(i) => success(EInt(i), t)
-          case TFloat(f) => success(EFloat(f), t)
-          case TTrue => success(EBool(true), t)
-          case TFalse => success(EBool(false), t)
-          case TUndef => success(EUndef, t)
-          case TNull => success(ENull, t)
-          case TIdent(id) => {
-            val v = if (isBound(id, bv)) bv(id) else Var(id, 0)
-            success(v, t)
+      case Nil => failure("Undexpected end of input", input)
+      case h :: t => h match {
+        case TString(s) => success(EString(s), t)
+        case TFloat(f) => success(EFloat(f), t)
+        case TTrue => success(EBool(true), t)
+        case TFalse => success(EBool(false), t)
+        case TUndef => success(EUndef, t)
+        case TNull => success(ENull, t)
+        case TOp("eval-semantic-bomb") => success(EEval, t)
+        case TNan => success(ENan, t)
+        case TInfP => success(EInfP, t)
+        case TInfM => success(EInfM, t)
+
+        case TIdent(id) => {
+          val v = if (isBound(id, bv)) {
+            bv(id)
+          } else if(isReservedName(id)) {
+            Var(id, 0)
+          } else {
+            System.err.println("Unbound variable: " + id)
+            Var(id, 0)
           }
-          case LPar => {
-            closePar(realExp(t, bv))
-          }
-          case _ => failure("NYI", input)
+          success(v, t)
         }
+        case LPar => {
+          closePar(realExp(t, bv))
+        }
+        case _ => failure("NYI", input)
       }
+    }
   }
 
   def parseAll(input: List[LJToken]): Exp = {

@@ -82,6 +82,12 @@ trait DSGMachinery {
       }
       else obtainedStates
 
+//      if (newStates.size == 24) {
+//        for (s1 <- newStates) {
+//          println(s1)
+//        }
+//      }
+
       val newEdges = noSwitchesEdges -- ee
 
       helper.update(newEdges)

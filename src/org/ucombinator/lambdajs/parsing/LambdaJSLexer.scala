@@ -27,12 +27,12 @@ class LambdaJSLexer extends Lexical with RegexParsers {
       | regex(new Regex("\"([^\"\\\\]|\\\\.|\\\\\\\\|)*\"")) ^^ (s => s.substring(1, s.length() - 1))
     )
 
-  def float: Parser[TFloat] = (regex(new Regex("-?[0-9]+[\\.][0-9]+")) ^^ {
+  def float: Parser[TFloat] = (regex(new Regex("-?[0-9]+[\\.][0-9]+(e[0-9]+)?")) ^^ {
     case s => TFloat(java.lang.Float.parseFloat(s))
   })
 
   def integer: Parser[TInt] = regex(new Regex("-?[0-9]+")) ^^ {
-    case s => TInt(Integer.parseInt(s))
+    case s => throw new Exception("Integers are not used in LambdaJS!")
   }
 
   def number: Parser[LJToken] = (float | integer)
@@ -53,6 +53,9 @@ class LambdaJSLexer extends Lexical with RegexParsers {
       | ")" ^^^ RPar
       | number
       | string ^^ TString
+      | "+nan.0" ^^^ TNan
+      | "+inf.0" ^^^ TInfP
+      | "-inf.0" ^^^ TInfM
       | "lambda" ^^^ TLambda
       | "get-field" ^^^ TIndex
       | "delete-field" ^^^ TDel
@@ -91,7 +94,7 @@ class LambdaJSLexer extends Lexical with RegexParsers {
 object LambdaJSTokens extends Tokens {
 
   val operators: Set[String] = Set(
-    "+", "string-+", "%", "-", "*", "/", "===", "==", "<", "string-<",
+    "+", "string-+", "%", "-", "*", "/", "===", "==", "<", "string-<", "\\|", "eval-semantic-bomb",
     "&", "|", "^", "~", "<<", ">>", ">>>",
     "to-integer", "to-uint-32", "to-int-32",
     "=",
@@ -108,6 +111,10 @@ object LambdaJSTokens extends Tokens {
   )
 
   abstract sealed class LJToken(val chars: String) extends Token
+  case object TInfP extends LJToken("+inf.0")
+  case object TInfM extends LJToken("-inf.0")
+  case object TNan extends LJToken("+nan.0")
+
   case object TTrue extends LJToken("true")
   case object TFalse extends LJToken("false")
   case object TUndef extends LJToken("undefined")

@@ -18,18 +18,28 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
 
   sealed abstract class PState
 
-  case class Eval(store: Store, clo: Closure) extends PState
+  case class Eval(store: Store, clo: Closure) extends PState {
+    override def toString = "Eval(" + clo.toString + ", " + store.hashCode() + ")"
+  }
 
-  case class Cont(store: Store, v: Value) extends PState
+  case class Cont(store: Store, v: Value) extends PState {
+    override def toString = "Cont(" + v.toString + ", " + store.hashCode() + ")"
+  }
 
-  case class Apply(store: Store, pr: PotentialRedex) extends PState
+  case class Apply(store: Store, pr: PotentialRedex) extends PState {
+    override def toString = "Apply(" + pr.toString + ", " + store.hashCode() + ")"
+  }
 
-  case class PFinal(v: Value, store: Store) extends PState
+  case class PFinal(v: Value, store: Store) extends PState {
+    override def toString = "Final(" + v.toString + ", " + store.hashCode() + ")"
+  }
 
   case class PError(m: String) extends PState
 
   // An administrative state for immediate pop/push
-  case class PSwitch(s1: PState, s2: PState, popped: Frame, pushed: Frame) extends PState
+  case class PSwitch(s1: PState, s2: PState, popped: Frame, pushed: Frame) extends PState {
+    override def toString = "SwitchState"
+  }
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -158,7 +168,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
             (Eps, Eval(store, ec)))
         }
 
-        case PR_OP(op, values) => withEps(Cont(store, delta(op, values)))
+        case PR_OP(op, values) => withEps(Cont(store, delta(op.op, values)))
 
         case PR_REF(v) => {
           val a = alloc(state)
@@ -322,6 +332,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
   }
 
   def error(msg: String): PError = {
+    System.err.println(msg)
     PError(msg)
   }
 

@@ -10,6 +10,8 @@ object LJSyntax {
 
   type Label = String
 
+  final case class Op(op: String, stamp: Int)
+
   sealed abstract class Exp extends Positional {
     def isValue: Boolean = false
   }
@@ -47,6 +49,11 @@ object LJSyntax {
   case object EUndef extends Exp {
     override def isValue = true
   }
+
+  case object EEval extends Exp
+  case object ENan extends Exp
+  case object EInfP extends Exp
+  case object EInfM extends Exp
 
   case object ENull extends Exp {
     override def isValue = true
@@ -230,7 +237,7 @@ object LJSyntax {
     }
   }
 
-  case class OpApp(op: String, args: List[Exp], stamp: Int) extends StampedExp {
+  case class OpApp(op: Op, args: List[Exp], stamp: Int) extends StampedExp {
     override def hashCode() = stamp
 
     override def equals(obj: Any) = obj match {
@@ -274,6 +281,12 @@ trait LJSyntax {
   case class FloatValue(f: Float) extends AbstractNumValue
 
   case object NumTopValue extends AbstractNumValue
+
+  case object PlusInf extends AbstractNumValue
+
+  case object MinusInf extends AbstractNumValue
+
+  case object EvalValue extends Value
 
   def mkIntValue(n: Int, truncate: Boolean): AbstractNumValue = if (truncate) {
     NumTopValue
@@ -339,7 +352,7 @@ trait LJSyntax {
 
   case class ThrowClo(e: Closure) extends Closure
 
-  case class OpClo(op: String, args: List[Closure]) extends Closure
+  case class OpClo(op: Op, args: List[Closure]) extends Closure
 
   case class ValueClo(v: Value) extends Closure
 
@@ -363,7 +376,7 @@ trait LJSyntax {
 
   case class PR_IF(v: Value, tb: Closure, eb: Closure) extends PotentialRedex
 
-  case class PR_OP(op: String, vs: List[Value]) extends PotentialRedex
+  case class PR_OP(op: Op, vs: List[Value]) extends PotentialRedex
 
   case class PR_SET(v: Value, v1: Value) extends PotentialRedex
 
@@ -411,7 +424,7 @@ trait LJSyntax {
       case TryCatch(e: Exp, x: Var, rest: Exp, _) => TryCatchClo(toGround(e), x, toGround(rest))
       case TryFinally(e: Exp, rest: Exp, _) => TryFinallyClo(toGround(e), toGround(rest))
       case Throw(e: Exp, _) => ThrowClo(toGround(e))
-      case OpApp(op: String, args: List[Exp], _) => OpClo(op, args.map(toGround))
+      case OpApp(op: Op, args: List[Exp], _) => OpClo(op, args.map(toGround))
       case x => throw new Exception("Cannot convert the expression " + x.toString + " to a closure.")
     }
   }
@@ -426,6 +439,10 @@ trait LJSyntax {
     case EBool(b) => BoolValue(b)
     case EUndef => UndefValue
     case ENull => NullValue
+    case EEval => EvalValue
+    case ENan => NumTopValue
+    case EInfP => PlusInf
+    case EInfM => MinusInf
     // case EAddr(a) => AddrValue(a)
     case r@Record(entries, _) if r.isValue => RecValue(entries.map {
       case (s, ee) => (StringValue(s), exp2Value(ee))

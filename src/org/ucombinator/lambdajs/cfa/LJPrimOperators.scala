@@ -8,6 +8,11 @@ import org.ucombinator.lambdajs.syntax.LJSyntax
 
 trait LJPrimOperators extends LJFrames with LJSyntax {
 
-  def delta(op: String, values: List[Value]): Value = null
+  def delta(op: String, values: List[Value]): Value = op match {
+    case o => {
+      System.err.println("Operation " + o + ", arguments: " + values)
+      UndefValue
+    }
+  }
 
 }

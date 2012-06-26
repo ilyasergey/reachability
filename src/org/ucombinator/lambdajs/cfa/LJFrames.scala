@@ -60,6 +60,6 @@ trait LJFrames extends LJSyntax {
 
   case class TryFinallyFrame(d: Closure) extends Frame
 
-  case class OpFrame(op: String, pre: List[Value], post: List[Closure]) extends Frame
+  case class OpFrame(op: Op, pre: List[Value], post: List[Closure]) extends Frame
 
 }
