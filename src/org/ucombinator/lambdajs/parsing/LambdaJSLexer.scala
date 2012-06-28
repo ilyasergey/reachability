@@ -71,7 +71,8 @@ class LambdaJSLexer extends Lexical with RegexParsers {
       | "throw" ^^^ TThrow
       | "if" ^^^ TIf
       | "let" ^^^ TLet
-      | "try" ^^^ TTry
+      | "try-catch" ^^^ TTryCatch
+      | "try-finally" ^^^ TTryFinally
       | identOrOperator)
 
 
@@ -139,7 +140,8 @@ object LambdaJSTokens extends Tokens {
   case object TUpdate extends LJToken("update-field")
   case object TWhile extends LJToken("while")
   case object TBreak extends LJToken("break")
-  case object TTry extends LJToken("try")
+  case object TTryCatch extends LJToken("try-catch")
+  case object TTryFinally extends LJToken("try-finally")
   case object TIf extends LJToken("if")
   case object TThrow extends LJToken("throw")
 

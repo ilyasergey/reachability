@@ -325,6 +325,36 @@ class LambdaJSParser {
     }
   }
 
+  def tryCatch(input: List[LJToken], bv: Map[String, Var]): Result[Exp] = {
+    val result = twoExpressions(input, bv) //parse try-catch and finally as two exprs
+    if (isFailure(result)) {
+      failure("Faled parsing try-catch of finally in try-catch-finally", input)
+    } else {
+      val ((e1, e2), rest) = extract(result)
+      e2 match {
+        case Fun(List(x), body, stamp) => success(TryCatch(e1, x, body, stamp), rest)
+        case notLambda => {
+          failure("Catch-clause is not well-formed lambda: " + notLambda, input)
+        }
+      }
+    }
+  }
+
+  def tryFinally(input: List[LJToken], bv: Map[String, Var]): Result[Exp] = {
+    val result = twoExpressions(input, bv) //parse try-catch and finally as two exprs
+    if (isFailure(result)) {
+      failure("Faled parsing try-catch of finally in try-catch-finally", input)
+    } else {
+      val ((e1, e2), rest) = extract(result)
+      e1 match {
+        case TryCatch(_, _, _, _) => success(TryFinally(e1, e2, newStamp()), rest)
+        case notCatch => {
+          failure("Catch-part is not well-formed: " + notCatch, input)
+        }
+      }
+    }
+  }
+
   def pif(input: List[LJToken], bv: Map[String, Var]): Result[Exp] = {
     val result = threeExpressions(input, bv)
     if (isFailure(result)) {
@@ -404,6 +434,8 @@ class LambdaJSParser {
     case TAsgn :: rest => asgn(rest, bv)
     case TIndex :: rest => lookup(rest, bv)
     case TWhile :: rest => pwhile(rest, bv)
+    case TTryCatch :: rest => tryCatch(rest, bv)
+    case TTryFinally :: rest => tryFinally(rest, bv)
     case TSeq :: rest => seq(rest, bv)
     case TDel :: rest => delete(rest, bv)
     case TIf :: rest => pif(rest, bv)
@@ -437,7 +469,7 @@ class LambdaJSParser {
         case TIdent(id) => {
           val v = if (isBound(id, bv)) {
             bv(id)
-          } else if(isReservedName(id)) {
+          } else if (isReservedName(id)) {
             Var(id, 0)
           } else {
             System.err.println("Unbound variable: " + id)
@@ -476,8 +508,18 @@ class LambdaJSParser {
   }
 
   def parseAllIn(filename: String): Exp = {
+
+    System.err.println("Reading file...")
+
+    val firstTime = (new java.util.Date()).getTime
     val lexer = new LambdaJSLexer
     val input = lexer.parseAllIn(filename)
+    val secondTime = (new java.util.Date()).getTime
+    val delta = secondTime - firstTime
+
+    System.err.println("Input read in " + delta + " ms.")
+
+
     parseAll(input)
   }
 

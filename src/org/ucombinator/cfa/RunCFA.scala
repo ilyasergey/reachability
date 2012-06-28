@@ -127,7 +127,7 @@ object RunCFA {
         System.err.println("Program is parsed in " + delta + " milliseconds")
 
         if (opts.verbose) {
-          System.out.println("Input program:")
+          System.err.println("Input program:")
           System.out.println(program)
           System.out.println("\n")
         }
