@@ -40,7 +40,7 @@ class LambdaJSSlowParser extends Parsers {
     case TString(s) => s
   }
 
-  def float: Parser[Float] = acceptIf(_.isInstanceOf[TFloat])(_ => "Operation expected") ^^ {
+  def float: Parser[Double] = acceptIf(_.isInstanceOf[TFloat])(_ => "Operation expected") ^^ {
     case TFloat(f) => f
   }
 
@@ -131,7 +131,7 @@ class LambdaJSSlowParser extends Parsers {
   def exp(bv: Map[String, Var]): Parser[Exp] = (
         wrapped(realExp(bv))
       | string ^^ EString
-      | int ^^ EInt
+//      | int ^^ EInt
       | float ^^ EFloat
       | TTrue ^^^ EBool(true)
       | TFalse ^^^ EBool(false)

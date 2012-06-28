@@ -9,8 +9,7 @@ import org.ucombinator.util.FancyOutput
  *
  * @author ilya
  */
-trait DSGMachinery {
-  self: GCInterface with FancyOutput =>
+trait DSGMachinery {self: GCInterface with FancyOutput =>
 
   /**
    * Abstract components
@@ -21,16 +20,21 @@ trait DSGMachinery {
   type Frame
   type ControlState
   type Term
+  type Value
+  type Addr
+  type SharedStore = Map[Addr, Set[Value]]
 
   def initState(e: Term): (ControlState, Kont)
 
-  def step(q: ControlState, k: Kont, frames: Kont): Set[(StackAction[Frame], ControlState)]
+  def step(q: ControlState, k: Kont, frames: Kont, store: SharedStore): Set[(StackAction[Frame], ControlState, SharedStore)]
 
   def mustHaveOnlyEmptyContinuation(s: ControlState): Boolean
 
   def canHaveEmptyContinuation(s: ControlState): Boolean
 
   def canHaveSwitchFrames: Boolean
+
+  def isStoreSensitive(s: ControlState): Boolean
 
   //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -56,84 +60,85 @@ trait DSGMachinery {
   sealed case class DSG(nodes: Set[S], edges: Edges, s0: S)
 
   /**
+   * Compute the leas-fixed point by Kleene iteration
+   */
+  def evaluateDSG(e: Term): (DSG, SharedStore) = {
+    val initial = initState(e)
+    val initS = initial._1
+
+    // Compute the LFP(iterateDSG) recursively
+    def eval(next: DSG, helper: NewDSGHelper, shouldProceed: Boolean, statesToVisit: Set[S], store: SharedStore):
+    (DSG, NewDSGHelper, SharedStore) = {
+      if (!shouldProceed) {
+        (next, helper, store)
+      } else if (interrupt && next.edges.size > interruptAfter) {
+        (next, helper, store)
+      } else {
+        val (next2, helper2, goAgain, newToVisit, newStore) = iterateDSG(next, helper, statesToVisit, store)
+        eval(next2, helper2, goAgain, newToVisit, newStore)
+      }
+    }
+
+    val firstDSG = DSG(Set(initS), Set(), initS)
+    val firstHelper = new NewDSGHelper
+    val (nextDSG, nextHelper, hasNew, toVisit, firstStore) = iterateDSG(firstDSG, firstHelper, Set(initS), Map.empty)
+
+    val (resultDSG, _, newStore) = eval(nextDSG, nextHelper, hasNew, toVisit, firstStore)
+
+    (resultDSG, newStore)
+  }
+
+  /**
    * Monotonic DSG iteration function
    * denoted as 'f' in the paper
    */
-
-  def iterateDSG(dsg: DSG, helper: NewDSGHelper, toVisit: Set[S]): (DSG, NewDSGHelper, Boolean, Set[S]) = dsg match {
+  private def iterateDSG(dsg: DSG, helper: NewDSGHelper, toVisit: Set[S], store: SharedStore): (DSG, NewDSGHelper, Boolean, Set[S], SharedStore) = dsg match {
     case DSG(ss, ee, s0) => {
-      val newNodesAndEdges: Set[(S, Edge)] = for {
+
+      val newNodesEdgesStores: Set[(S, Edge, SharedStore)] = for {
         s <- toVisit
         kont <- helper.getRequiredKont(s, s0)
         possibleFrames = helper.getPossibleStackFrames(s)
-        (g, s1) <- step(s, kont, possibleFrames)
-      } yield (s1, Edge(s, g, s1))
+        (g, s1, littleStore) <- step(s, kont, possibleFrames, store)
+      } yield (s1, Edge(s, g, s1), littleStore)
 
-      val (obtainedStates, obtainedEdges) = newNodesAndEdges.unzip
+      val (obtainedStates, obtainedEdges, obtainedStores) = newNodesEdgesStores.unzip3
 
       // Transform switch edges to pairs of push/pop edges
       val noSwitchesEdges: Edges = if (canHaveSwitchFrames) processSwitchEdges(obtainedEdges) else obtainedEdges
       // Collect new states after decoupling switches
-      val newStates: Nodes = if (canHaveSwitchFrames) {
+      val newStates: Nodes = (if (canHaveSwitchFrames) {
         val nodes: Set[S] = (noSwitchesEdges -- ee).map {
           case Edge(source, _, target) => target
         }
         nodes ++ obtainedStates
-      }
-      else obtainedStates
-
-//      if (newStates.size == 24) {
-//        for (s1 <- newStates) {
-//          println(s1)
-//        }
-//      }
+      } else obtainedStates)
 
       val newEdges = noSwitchesEdges -- ee
 
       helper.update(newEdges)
 
-      val newToVisit = newStates ++ newStates.flatMap(s => helper.getEpsNextStates(s))
+      val newStore: SharedStore = obtainedStores.foldLeft(store)(_ ++ _)
+
+      val newToVisit = (newStates
+        // Lemma 1 (newEps)
+        ++ newStates.flatMap(s => helper.getEpsNextStates(s))
+        // Lemma 2 (store-sensitive)
+        ++ getStoreSensitiveStates(ss))
 
       // S' = ...
       val ss1: Nodes = ss ++ newStates + s0
 
       // E' = ...
       val ee1 = (ee ++ newEdges)
-      val hasNewEdges = !newEdges.subsetOf(ee)
+      val shouldProceed = !newEdges.subsetOf(ee) || (store != newStore)
 
 
       println(progressPrefix + " Dyck state graph: " + ss1.size + " nodes and " + ee1.size + " edges.")
 
       // return updated graph
-      (DSG(ss1, ee1, s0), helper, hasNewEdges, newToVisit)
+      (DSG(ss1, ee1, s0), helper, shouldProceed, newToVisit, newStore)
     }
-  }
-
-  /**
-   * Compute the leas-fixed point by Kleene iteration
-   */
-  def evaluateDSG(e: Term) = {
-    val initial = initState(e)
-    val initS = initial._1
-
-    // Compute the LFP(iterateDSG) recursively
-    def eval(first: DSG, next: DSG, helper: NewDSGHelper, hasNew: Boolean, statesToVisit: Set[S]): (DSG, NewDSGHelper) = {
-      if (!hasNew) {
-        (next, helper)
-      } else if (interrupt && next.edges.size > interruptAfter) {
-        (next, helper)
-      } else {
-        val (next2, helper2, moreNew, newToVisit) = iterateDSG(next, helper, statesToVisit)
-        eval(next, next2, helper2, moreNew, newToVisit)
-      }
-    }
-
-    val firstDSG = DSG(Set(initS), Set(), initS)
-    val firstHelper = new NewDSGHelper
-    val (nextDSG, nextHelper, hasNew, toVisit) = iterateDSG(firstDSG, firstHelper, Set(initS))
-
-    val (resultDSG, _) = eval(firstDSG, nextDSG, nextHelper, hasNew, toVisit)
-    resultDSG
   }
 
   sealed class NewDSGHelper {
@@ -300,6 +305,8 @@ trait DSGMachinery {
     private def gets[A, B](map: MMap[A, Set[B]], key: A): Set[B] = map.getOrElse(key, Set())
 
   }
+
+  private def getStoreSensitiveStates(ss: Set[S]) = ss.filter(isStoreSensitive(_))
 
   /**************************************************************
    * Some utility methods

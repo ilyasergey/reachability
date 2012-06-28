@@ -38,7 +38,7 @@ object LJSyntax {
     override def isValue = true
   }
 
-  case class EFloat(n: Float) extends Exp {
+  case class EFloat(n: Double) extends Exp {
     override def isValue = true
   }
 
@@ -278,7 +278,7 @@ trait LJSyntax {
 
   case class IntValue(n: Int) extends AbstractNumValue
 
-  case class FloatValue(f: Float) extends AbstractNumValue
+  case class FloatValue(f: Double) extends AbstractNumValue
 
   case object NumTopValue extends AbstractNumValue
 
@@ -294,7 +294,7 @@ trait LJSyntax {
     IntValue(n)
   }
 
-  def mkFloatValue(n: Float, truncate: Boolean): AbstractNumValue = if (truncate) {
+  def mkFloatValue(n: Double, truncate: Boolean): AbstractNumValue = if (truncate) {
     NumTopValue
   } else {
     FloatValue(n)
@@ -434,7 +434,7 @@ trait LJSyntax {
    */
   def exp2Value(e: Exp): Value = e match {
     case EString(s) => StringValue(s)
-    case EInt(n) => mkIntValue(n, false)
+//    case EInt(n) => mkIntValue(n, false)
     case EFloat(n) => mkFloatValue(n, false)
     case EBool(b) => BoolValue(b)
     case EUndef => UndefValue

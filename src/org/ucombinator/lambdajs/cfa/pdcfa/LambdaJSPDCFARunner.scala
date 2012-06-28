@@ -17,8 +17,14 @@ with DSGAnalysisRunner with LambdaJSGarbageCollector {
   type Addr = (Option[Var], List[Int])
 
   type Term = Exp
-
   override type Kont = List[Frame]
+
+  override type SharedStore = Store
+
+  def isStoreSensitive(s: ControlState) = s match {
+    case Apply(PR_VAR(_, _)) | Apply(PR_DEREF(_)) => true
+    case _ => false
+  }
 
   def canHaveSwitchFrames = true
 
@@ -32,7 +38,7 @@ with DSGAnalysisRunner with LambdaJSGarbageCollector {
 
     val firstTime = (new java.util.Date()).getTime
 
-    val resultDSG = evaluateDSG(program)
+    val (resultDSG, resultStore) = evaluateDSG(program)
 
     val secondTime = (new java.util.Date()).getTime
     val delta = secondTime - firstTime
@@ -48,11 +54,13 @@ with DSGAnalysisRunner with LambdaJSGarbageCollector {
     if (isVerbose) {
       println()
       println("Dyck State Graph computed.")
+      println(resultStore)
     }
 
     if (isVerbose) {
       val res = prettyPrintDSG(resultDSG)
       println()
+
       if (!simplify && res.contains("Final")) {
         if (isVerbose) {
           println("Has final state.\n")
@@ -63,6 +71,7 @@ with DSGAnalysisRunner with LambdaJSGarbageCollector {
       } else if (!simplify) {
         println("Warning: no final state!\n")
       }
+
     }
 
     println()
@@ -85,7 +94,7 @@ with DSGAnalysisRunner with LambdaJSGarbageCollector {
 
 
   def alloc(s: ControlState) = s match {
-    case Apply(_, pr) =>
+    case Apply(pr) =>
       k match {
         case 0 => (None, List(pr.hashCode()))
         case 1 => (None, List(pr.hashCode()))
@@ -95,7 +104,7 @@ with DSGAnalysisRunner with LambdaJSGarbageCollector {
   }
 
   def alloc(s: ControlState, x: Var) = s match {
-    case Apply(_, pr) =>
+    case Apply(pr) =>
       if (isDummy) {
         (Some(Var("SingleAddr", 0)), Nil)
       } else k match {

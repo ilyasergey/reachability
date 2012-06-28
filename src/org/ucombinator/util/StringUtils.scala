@@ -40,6 +40,12 @@ import java.io.File
 
 object StringUtils {
 
+  def truncateIfLong(s: String, l: Int): String = {
+    if (s == null || l <= 0) s
+    else if (s.length() <= l) s
+    else s.take(l) + "..."
+  }
+
   def trimFileName(filename: String) = {
 
     import File.separator

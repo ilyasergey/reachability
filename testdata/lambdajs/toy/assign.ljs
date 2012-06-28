@@ -3,4 +3,4 @@
     (set!
          @Object_prototype
          (deref @Object_prototype))
-     42))
+     42.0))

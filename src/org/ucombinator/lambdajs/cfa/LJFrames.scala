@@ -26,35 +26,35 @@ trait LJFrames extends LJSyntax {
 
   case class Lookup1Frame(index: Closure) extends Frame
 
-  case class Lookup2Frame(rec: Value) extends Frame
+  case class Lookup2Frame(rec: Value, c: Closure) extends Frame
 
   case class Update1Frame(index: Closure, rhs: Closure) extends Frame
 
   case class Update2Frame(rec: Value, rhs: Closure) extends Frame
 
-  case class Update3Frame(rec: Value, index: Value) extends Frame
+  case class Update3Frame(rec: Value, index: Value, c: Closure) extends Frame
 
   case class Del1Frame(index: Closure) extends Frame
 
-  case class Del2Frame(rec: Value) extends Frame
+  case class Del2Frame(rec: Value, c: Closure) extends Frame
 
-  case object RefFrame extends Frame
+  case class RefFrame(c: Closure) extends Frame
 
-  case object DerefFrame extends Frame
+  case class DerefFrame(c: Closure) extends Frame
 
   case class Asgn1Frame(rhs: Closure) extends Frame
 
-  case class Asgn2Frame(lhs: Value) extends Frame
+  case class Asgn2Frame(lhs: Value, c: Closure) extends Frame
 
   case class IfFrame(tb: Closure, eb: Closure) extends Frame
 
   case class SeqFrame(snd: Closure) extends Frame
 
-  case object ThrowFrame extends Frame
+  case class ThrowFrame(c: Closure) extends Frame
 
-  case class BreakFrame(l: Label) extends Frame
+  case class BreakFrame(l: Label, c: Closure) extends Frame
 
-  case class LabFrame(l: Label) extends Frame
+  case class LabFrame(l: Label, c: Closure) extends Frame
 
   case class TryCatchFrame(x: Var, d: Closure) extends Frame
 

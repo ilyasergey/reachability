@@ -49,11 +49,20 @@ with PDCFAGarbageCollector with IPDSMachinery with DSGMachinery with DSGAnalysis
 
   type Term = Exp
 
+  type Value = Val
+
   override type Kont = List[Frame]
 
   def canHaveSwitchFrames = false
 
-  def step(q: ControlState, k: Kont, frames: Kont) = stepIPDS(q, k, frames)
+  def isStoreSensitive(s: ControlState) = true
+
+  def step(q: ControlState, k: Kont, frames: Kont, store: SharedStore) = {
+    val result = stepIPDS(q, k, frames)
+    result.map {
+      case (x, y) => (x, y, store)
+    }
+  }
 
   def alloc(v: Var, c: Conf): Addr = c match {
     case (PState(e, _, _, _), _) =>
@@ -79,7 +88,7 @@ with PDCFAGarbageCollector with IPDSMachinery with DSGMachinery with DSGAnalysis
 
     val firstTime = (new java.util.Date()).getTime
 
-    val resultDSG = evaluateDSG(anast)
+    val (resultDSG, _) = evaluateDSG(anast)
 
     val secondTime = (new java.util.Date()).getTime
     val delta = secondTime - firstTime
@@ -127,6 +136,5 @@ with PDCFAGarbageCollector with IPDSMachinery with DSGMachinery with DSGAnalysis
 
     }
   }
-
 
 }

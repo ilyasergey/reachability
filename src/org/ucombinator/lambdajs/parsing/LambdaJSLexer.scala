@@ -28,7 +28,7 @@ class LambdaJSLexer extends Lexical with RegexParsers {
     )
 
   def float: Parser[TFloat] = (regex(new Regex("-?[0-9]+[\\.][0-9]+(e[0-9]+)?")) ^^ {
-    case s => TFloat(java.lang.Float.parseFloat(s))
+    case s => TFloat(java.lang.Double.parseDouble(s))
   })
 
   def integer: Parser[TInt] = regex(new Regex("-?[0-9]+")) ^^ {
@@ -125,7 +125,7 @@ object LambdaJSTokens extends Tokens {
   case class TString(s: String) extends LJToken(s)
   case class TIdent(id: String) extends LJToken(id)
   case class TOp(op: String) extends LJToken(op)
-  case class TFloat(f: Float) extends LJToken(f.toString)
+  case class TFloat(f: Double) extends LJToken(f.toString)
   case class TInt(n: Int) extends LJToken(n.toString)
   case object TLambda extends LJToken("lambda")
   case object TLet extends LJToken("let")

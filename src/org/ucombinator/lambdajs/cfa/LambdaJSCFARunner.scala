@@ -2,13 +2,14 @@ package org.ucombinator.lambdajs.cfa
 
 import org.ucombinator.cfa.AnalysisRunner
 import org.ucombinator.util.{FancyOutput, CFAOptions}
-import org.ucombinator.dsg.DSGMachinery
 
 /**
  * @author ilya
  */
 
 abstract class LambdaJSCFARunner(opts: CFAOptions) extends AnalysisRunner(opts) with JAM with FancyOutput with StoreInterface {
+
+  import org.ucombinator.util.StringUtils._
 
   def prettyPrintState(state: ControlState, map: Map[ControlState, Int]): String = {
     val result: String = if (simplify) {
@@ -19,16 +20,15 @@ abstract class LambdaJSCFARunner(opts: CFAOptions) extends AnalysisRunner(opts) 
         }
       }
     } else state match {
-      case Eval(st, clo) => ("Eval(" + clo.toString + ")" + "\\n" + "  store hash = " + st.hashCode().toString)
-      case Apply(st, pr) => ("Apply(" + pr.toString + ")" + "\\n" + "  store hash = " + st.hashCode().toString)
-      case Cont(st, v) => ("Cont(" + v.toString + ")" + "\\n" + "  store hash = " + st.hashCode().toString)
+      case Eval(clo) => "Eval(" + truncateIfLong(clo.toString, 100) + ")" + "\\n"
+      case Apply(pr) => "Apply(" + truncateIfLong(pr.toString, 100) + ")" + "\\n"
+      case Cont(v) => "Cont(" + truncateIfLong(v.toString, 100) + ")" + "\\n"
 
-      case PFinal(v, _) => "Final(" + v.toString + ")"
+      case PFinal(v) => "Final(" + truncateIfLong(v.toString, 200) + ")"
       case PError(msg) => "ErrorState[" + msg + "]"
       case PSwitch(s1, s2, f1, f2) => "SwitchState[" + map.get(state).get + "]"
     }
     result
   }
-
 
 }

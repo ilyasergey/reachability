@@ -19,17 +19,17 @@ object TestPDCFAForLambdaJS {
   val app = Fun(List(Var("f", 1), Var("x", 2)), App(Var("f", 1), List(Var("x", 2)), 3), 0)
   val id = Fun(List(Var("y", 4)), Var("y", 4), 5)
 
-  val example1 = Let(Var("z", 6), EInt(42), App(id, List(Var("z", 6)), 8), 7)
-  val example2 = Let(Var("z", 6), EInt(42), App(app, List(id, Var("z", 6)), 8), 7)
+  val example1 = Let(Var("z", 6), EFloat(42.0), App(id, List(Var("z", 6)), 8), 7)
+  val example2 = Let(Var("z", 6), EFloat(42.0), App(app, List(id, Var("z", 6)), 8), 7)
 
   val text3 = """
   (let ((g (lambda (f x) (f x)))
         (z (lambda (y) y)))
-        (g z 42))
+        (g z 42.0))
   """
 
   val text4 = """
-  (let ((z 42))
+  (let ((z 42.0))
        ((lambda (f x) (f x)) (lambda (y) y) z))
   """
 

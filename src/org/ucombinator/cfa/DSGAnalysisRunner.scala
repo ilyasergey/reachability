@@ -13,6 +13,8 @@ import org.ucombinator.util.{StringUtils, CFAOptions, FancyOutput}
 trait DSGAnalysisRunner {
   self: FancyOutput with DSGMachinery =>
 
+  import org.ucombinator.util.StringUtils._
+
   def dumpDSGGraph(opts: CFAOptions, resultDSG: DSG): String = {
 
     import java.io._
@@ -68,7 +70,7 @@ trait DSGAnalysisRunner {
 
       if (!simplify) {
         buf.append(" [label=\"")
-        buf.append(g.toString)
+        buf.append(truncateIfLong(g.toString, 100))
         buf.append("\"]")
       }
 
