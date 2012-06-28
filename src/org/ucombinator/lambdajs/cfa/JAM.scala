@@ -125,7 +125,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
             }
           }
         }
-        case PR_REC_SET(RecValue(entries), sv, rhs) => {
+        case PR_REC_SET(RecValue(entries), sv, rhs, _) => {
           sv match {
             // Fetching any field of a record
             case StringTop => {
@@ -142,7 +142,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
             }
           }
         }
-        case PR_REC_DEL(RecValue(entries), sv) => {
+        case PR_REC_DEL(RecValue(entries), sv, _) => {
           sv match {
             // Fetching any field of a record
             case StringTop => {
@@ -170,12 +170,12 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
 
         case PR_OP(op, values) => withEps(Cont(delta(op.op, values)), store)
 
-        case PR_REF(v) => {
+        case PR_REF(v, _) => {
           val a = alloc(state)
           withEps(Cont(AddrValue(a)), put(store, a, Set(v)))
         }
 
-        case PR_DEREF(AddrValue(a)) => {
+        case PR_DEREF(AddrValue(a), _) => {
           if (get(store, a).isEmpty) {
             val msg = "Null pointer " + a
             withEps(error(msg), store)
@@ -185,7 +185,7 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
           }
         }
 
-        case PR_ASGN(AddrValue(a), v) => {
+        case PR_ASGN(AddrValue(a), v, c) => {
           withEps(Cont(v), put(store, a, Set(v)))
         }
 
@@ -279,27 +279,27 @@ trait JAM extends LJFrames with LJSyntax with LJPrimOperators {self: StoreInterf
             val push = Update3Frame(u, v, c)
             withSwitch(state, Eval(c), pop, push, store)
           }
-          case pop@Update3Frame(u, t, _) if t.isInstanceOf[AbstractStringValue] => {
-            withPop(Apply(PR_REC_SET(u, t.asInstanceOf[AbstractStringValue], v)), pop, store)
+          case pop@Update3Frame(u, t, c) if t.isInstanceOf[AbstractStringValue] => {
+            withPop(Apply(PR_REC_SET(u, t.asInstanceOf[AbstractStringValue], v, c)), pop, store)
           }
 
           case pop@Del1Frame(c) => {
             val push = Del2Frame(v, c)
             withSwitch(state, Eval(c), pop, push, store)
           }
-          case pop@Del2Frame(u, _) if v.isInstanceOf[AbstractStringValue] => {
-            withPop(Apply(PR_REC_DEL(u, v.asInstanceOf[AbstractStringValue])), pop, store)
+          case pop@Del2Frame(u, c) if v.isInstanceOf[AbstractStringValue] => {
+            withPop(Apply(PR_REC_DEL(u, v.asInstanceOf[AbstractStringValue], c)), pop, store)
           }
 
 
-          case pop@RefFrame(_) => withPop(Apply(PR_REF(v)), pop, store)
-          case pop@DerefFrame(_) => withPop(Apply(PR_DEREF(v)), pop, store)
+          case pop@RefFrame(c) => withPop(Apply(PR_REF(v, c)), pop, store)
+          case pop@DerefFrame(c) => withPop(Apply(PR_DEREF(v, c)), pop, store)
 
           case pop@Asgn1Frame(c) => {
             val push = Asgn2Frame(v, c)
             withSwitch(state, Eval(c), pop, push, store)
           }
-          case pop@Asgn2Frame(u, _) => withPop(Apply(PR_ASGN(u, v)), pop, store)
+          case pop@Asgn2Frame(u, c) => withPop(Apply(PR_ASGN(u, v, c)), pop, store)
 
 
           case pop@IfFrame(c, d) => withPop(Apply(PR_IF(v, c, d)), pop, store)

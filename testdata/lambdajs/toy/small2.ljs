@@ -1,0 +1,127 @@
+(let ((@Object_prototype (alloc (object))))
+  (let ((@Function_prototype (alloc (object))))
+  (begin
+    (set!
+     @Object_prototype
+     (update-field (deref @Object_prototype)
+      "$proto"
+      null))
+    (begin
+     (set!
+      @Object_prototype
+      (update-field (deref @Object_prototype)
+       "$class"
+       "Object"))
+     (begin
+      (set!
+       @Object_prototype
+       (update-field (deref @Object_prototype)
+        "constructor"
+        undefined))
+      (begin
+       (set!
+        @Object_prototype
+        (update-field (deref @Object_prototype)
+         "toString"
+         (alloc (object ("$code" (lambda (this arguments)
+                                  (let
+                                   ()
+                                   (string-+ "[object " (string-+ (get-field
+                                                                   (deref this)
+                                                                   "$class") "]")))))
+                        ("arguments" null)
+                        ("prototype" (alloc (object ("$proto" @Object_prototype))))
+                        ("$proto" @Function_prototype)
+                        ("length" 0.0)
+                        ("$strRep" "function fromafunctionboject(){}")))))
+       (begin
+        (set!
+         @Object_prototype
+         (update-field (deref @Object_prototype)
+          "toLocaleString"
+          (alloc (object ("$code" (lambda (this arguments)
+                                   (let
+                                    ()
+                                    (string-+ "[object " (string-+ (get-field
+                                                                    (deref this)
+                                                                    "$class") "]")))))
+                         ("arguments" null)
+                         ("prototype" (alloc (object ("$proto" @Object_prototype))))
+                         ("$proto" @Function_prototype)
+                         ("length" 0.0)
+                         ("$strRep" "function fromafunctionboject(){}")))))
+        (begin
+         (set!
+          @Object_prototype
+          (update-field (deref @Object_prototype)
+           "valueOf"
+           (alloc (object ("$code" (lambda (this arguments)
+                                    (let
+                                     ()
+                                     this)))
+                          ("arguments" null)
+                          ("prototype" (alloc (object ("$proto" @Object_prototype))))
+                          ("$proto" @Function_prototype)
+                          ("length" 0.0)
+                          ("$strRep" "function fromafunctionboject(){}")))))
+         (begin
+          (set!
+           @Object_prototype
+           (update-field (deref @Object_prototype)
+            "hasOwnProperty"
+            (alloc (object ("$code" (lambda (this arguments)
+                                     (let
+                                      ((V (get-field
+                                           (deref (deref arguments))
+                                           "0")))
+                                      (has-own-prop? (deref this) (let
+                                                                   (($toStr V))
+                                                                   (if (=== (typeof $toStr) "location")
+                                                                    (prim->string (@toPrimitive_Number $toStr))
+                                                                    (prim->string $toStr)))))))
+                           ("arguments" null)
+                           ("prototype" (alloc (object ("$proto" @Object_prototype))))
+                           ("$proto" @Function_prototype)
+                           ("length" 1.0)
+                           ("$strRep" "function fromafunctionboject(){}")))))
+          (begin
+           (set!
+            @Function_prototype
+            (update-field (deref @Function_prototype)
+             "$proto"
+             @Object_prototype))
+           (begin
+            (set!
+             @Function_prototype
+             (update-field (deref @Function_prototype)
+              "$class"
+              "Function"))
+            (begin
+             (set!
+              @Function_prototype
+              (update-field (deref @Function_prototype)
+               "$strRep"
+               "function () {\n}"))
+             (begin
+              (set!
+               @Function_prototype
+               (update-field (deref @Function_prototype)
+                "constructor"
+                undefined))
+              (begin
+               (set!
+                @Function_prototype
+                (update-field (deref @Function_prototype)
+                 "toString"
+                 (alloc (object ("$code" (lambda (this arguments)
+                                          (let
+                                           ()
+                                           (get-field
+                                            (deref this)
+                                            "$strRep"))))
+                                ("arguments" null)
+                                ("prototype" (alloc (object ("$proto" @Object_prototype))))
+                                ("$proto" @Function_prototype)
+                                ("length" 0.0)
+                                ("$strRep" "function fromafunctionboject(){}")))))
+               42.0))))))))))))))

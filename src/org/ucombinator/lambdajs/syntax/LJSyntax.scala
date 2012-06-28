@@ -370,21 +370,19 @@ trait LJSyntax {
 
   case class PR_REC_REF(v: Value, s: AbstractStringValue) extends PotentialRedex
 
-  case class PR_REC_SET(v: Value, s: AbstractStringValue, v2: Value) extends PotentialRedex
+  case class PR_REC_SET(v: Value, s: AbstractStringValue, v2: Value, c: Closure) extends PotentialRedex
 
-  case class PR_REC_DEL(v: Value, s: AbstractStringValue) extends PotentialRedex
+  case class PR_REC_DEL(v: Value, s: AbstractStringValue, c: Closure) extends PotentialRedex
 
   case class PR_IF(v: Value, tb: Closure, eb: Closure) extends PotentialRedex
 
   case class PR_OP(op: Op, vs: List[Value]) extends PotentialRedex
 
-  case class PR_SET(v: Value, v1: Value) extends PotentialRedex
+  case class PR_REF(v: Value, c: Closure) extends PotentialRedex
 
-  case class PR_REF(v: Value) extends PotentialRedex
+  case class PR_ASGN(a: Value, v: Value, c: Closure) extends PotentialRedex
 
-  case class PR_ASGN(a: Value, v: Value) extends PotentialRedex
-
-  case class PR_DEREF(v: Value) extends PotentialRedex
+  case class PR_DEREF(v: Value, c: Closure) extends PotentialRedex
 
   case class PR_THROW(v: Value) extends PotentialRedex
 

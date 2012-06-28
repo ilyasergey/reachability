@@ -1,7 +1,7 @@
 package org.ucombinator.dsg
 
 import org.ucombinator.gc.GCInterface
-import org.ucombinator.util.FancyOutput
+import org.ucombinator.util.{StringUtils, FancyOutput}
 
 /**
  * Implementation Dyck State Graphs

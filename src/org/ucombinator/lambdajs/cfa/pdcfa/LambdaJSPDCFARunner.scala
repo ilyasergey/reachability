@@ -23,7 +23,7 @@ with DSGAnalysisRunner with LambdaJSGarbageCollector {
   override type SharedStore = Store
 
   def isStoreSensitive(s: ControlState) = s match {
-    case Apply(PR_VAR(_, _)) | Apply(PR_DEREF(_)) => true
+    case Apply(PR_VAR(_, _)) | Apply(PR_DEREF(_, _)) => true
     case _ => false
   }
 
@@ -91,27 +91,39 @@ with DSGAnalysisRunner with LambdaJSGarbageCollector {
     }
   }
 
+  var counter: Int = 0
 
-  def alloc(s: ControlState) = s match {
-    case Apply(pr) =>
-      k match {
-        case 0 => (None, List(pr.hashCode()))
-        case 1 => (None, List(pr.hashCode()))
-        case _ => throw new Exception("Analysis not implemented for k greater than 1 (" + k + ")")
-      }
-    case _ => throw new Exception("Allocation in a wrong state: " + s + "")
+  def next(): List[Int] = {
+    val result = counter
+    counter = counter + 1
+    List(result % 20)
   }
 
-  def alloc(s: ControlState, x: Var) = s match {
-    case Apply(pr) =>
-      if (isDummy) {
-        (Some(Var("SingleAddr", 0)), Nil)
-      } else k match {
-        case 0 => (Some(x), Nil)
-        case 1 => (Some(x), List(pr.hashCode()))
-        case _ => throw new Exception("Analysis not implemented for k greater than 1 (" + k + ")")
-      }
-    case _ => throw new Exception("Allocation in a wrong state: " + s + "")
+
+  def alloc(s: ControlState) = {
+    s match {
+      case Apply(pr) =>
+        k match {
+          case 0 => (None, List(pr.hashCode()))
+          case 1 => (None, List(pr.hashCode()))
+          case _ => throw new Exception("Analysis not implemented for k greater than 1 (" + k + ")")
+        }
+      case _ => throw new Exception("Allocation in a wrong state: " + s + "")
+    }
+  }
+
+  def alloc(s: ControlState, x: Var) = {
+    s match {
+      case Apply(pr) =>
+        if (isDummy) {
+          (Some(Var("SingleAddr", 0)), Nil)
+        } else k match {
+          case 0 => (Some(x), Nil)
+          case 1 => (Some(x), List(pr.hashCode()))
+          case _ => throw new Exception("Analysis not implemented for k greater than 1 (" + k + ")")
+        }
+      case _ => throw new Exception("Allocation in a wrong state: " + s + "")
+    }
   }
 
 }
