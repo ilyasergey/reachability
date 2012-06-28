@@ -12,6 +12,7 @@ import org.ucombinator.lambdajs.syntax.LJSyntax
 
 class LambdaJSPDCFARunner(opts: CFAOptions) extends LambdaJSCFARunner(opts) with DSGMachinery
 with DSGAnalysisRunner with LambdaJSGarbageCollector {
+
   import LJSyntax._
 
   type Addr = (Option[Var], List[Int])
@@ -61,17 +62,15 @@ with DSGAnalysisRunner with LambdaJSGarbageCollector {
       val res = prettyPrintDSG(resultDSG)
       println()
 
-      if (!simplify && res.contains("Final")) {
-        if (isVerbose) {
-          println("Has final state.\n")
+      for (s <- resultDSG.nodes) {
+        s match {
+          case PFinal(v) =>
+            println("Has final state.\n" + "PFinal(" + v.toString + ")")
+          case PError(msg) =>
+            println("Has error state.\n" + msg)
+          case _ =>
         }
-        if (res.contains("ErrorState")) {
-          println("Has errors.\n")
-        }
-      } else if (!simplify) {
-        println("Warning: no final state!\n")
       }
-
     }
 
     println()
@@ -114,6 +113,5 @@ with DSGAnalysisRunner with LambdaJSGarbageCollector {
       }
     case _ => throw new Exception("Allocation in a wrong state: " + s + "")
   }
-
 
 }
