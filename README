@@ -35,10 +35,10 @@ How to run:
 scala -cp ./out/production/reachability org.ucombinator.cfa.RunCFA [options] fileName
 
 -- for an executable jar with Scala SDK included
-java -jar GenericCFA.jar [options] fileName
+java -jar artifactsGenericCFA.jar org.ucombinator.cfa.RunCFA [options] fileName
 
 -- for an executable jar with NO Scala SDK included
-scala -cp GenericCFA.jar org.ucombinator.scheme.cfa.RunCFA [options] fileName
+scala -cp artifacts/GenericCFANoScala.jar org.ucombinator.cfa.RunCFA [options] fileName
 
 ------------------------------------------------------------------------------------
 
