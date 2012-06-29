@@ -66,8 +66,10 @@ with DSGAnalysisRunner with LambdaJSGarbageCollector {
         s match {
           case PFinal(v) =>
             println("Has final state.\n" + "PFinal(" + v.toString + ")")
+            println
           case PError(msg) =>
             println("Has error state.\n" + msg)
+            println
           case _ =>
         }
       }
