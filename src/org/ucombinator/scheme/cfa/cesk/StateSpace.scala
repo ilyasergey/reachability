@@ -94,7 +94,7 @@ trait StateSpace extends PrimOperators {
 
   case object UnspecifiedVal extends Val
 
-  case object BadVal extends Val
+  case class BadVal(v: Val, context: String) extends Val
 
   case class QuotedLit(v: SExp) extends Val
 

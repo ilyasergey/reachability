@@ -64,13 +64,13 @@ class SExpParser extends RegexParsers {
     }
 
   private def strue: Parser[SExp] =
-    "#t" ^^ {
-      case "#t" => SBoolean(true)
+    ("#t" | "#T") ^^ {
+      case _ => SBoolean(true)
     }
 
   private def sfalse: Parser[SExp] =
-    "#f" ^^ {
-      case "#f" => SBoolean(false)
+    ("#f" | "#F") ^^ {
+      case _ => SBoolean(false)
     }
 
   private def schar: Parser[SExp] =

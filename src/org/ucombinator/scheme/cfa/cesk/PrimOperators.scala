@@ -149,8 +149,17 @@ trait PrimOperators {
       case ("pair?", PairLit(v1, v2) :: Nil) => mkSet(BoolLit(true))
       case ("pair?", v :: Nil) => Set(BoolLit(true), BoolLit(false))
 
+      case ("integer?", (_ : AbstractNumLit) :: Nil) => Set(BoolLit(true))
+      case ("integer?", _ :: Nil) => Set(BoolLit(false))
+
+      case ("boolean?", (_ : BoolLit) :: Nil) => Set(BoolLit(true))
+      case ("boolean?", _ :: Nil) => Set(BoolLit(false))
+
       case ("car", QuotedLit(x :+: y) :: Nil) => mkSet(QuotedLit(x))
       case ("cdr", QuotedLit(x :+: y) :: Nil) => mkSet(QuotedLit(y))
+
+      case ("car", v :: Nil) => mkSet(BadVal(v, "car"))
+      case ("cdr", v :: Nil) => mkSet(BadVal(v, "cdr"))
 
       /**
        * Terra Incognita

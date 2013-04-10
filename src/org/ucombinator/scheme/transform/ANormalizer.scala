@@ -84,6 +84,51 @@ object ANormalizer {
       throw new Exception("Expression supported for size computing:\n" + e.toString)
     }
   }
+
+
+  def vars(e: Exp): Int = e match {
+    case Ref(name) => 0
+    case Prim(name, safe) => 0
+    case Unspecified() => 0
+    case Lit(sexp) => 0
+    case App(fun, args) => {
+      vars(fun) + args.args.foldLeft(0)((acc, arg) => acc + vars(arg.exp))
+    }
+    case Lambda(formals, body) => {
+      formals.formals.size + body.exps.foldLeft(0)((acc, e) => acc + vars(e))
+    }
+    case If(condition, ifTrue, ifFalse) => {
+      vars(condition) + vars(ifTrue) + vars(ifFalse)
+    }
+    case SetVar(name, value) => vars(value)
+    case Values(args) => {
+      args.args.foldLeft(0)((acc, arg) => acc + vars(arg.exp))
+    }
+    case LetValues(formals, values, body) => {
+      val n1 = values.foldLeft(0)((acc, e) => acc + vars(e))
+      val n2 = body.exps.foldLeft(0)((acc, e) => acc + vars(e))
+      n1 + n2 + formals.size
+    }
+    case Begin(body) => {
+      body.exps.foldLeft(0)((acc, e) => acc + vars(e))
+    }
+    case And(exps) => {
+      1 + exps.foldLeft(0)((acc, e) => acc + vars(e))
+    }
+    case Or(exps) => {
+      1 + exps.foldLeft(0)((acc, e) => acc + vars(e))
+    }
+    case Let(bindings, body) => {
+      val n1 = bindings.bindings.foldLeft(0)((acc, b) => acc + vars(b.value))
+      val n2 = body.exps.foldLeft(0)((acc, e) => acc + vars(e))
+      n1 + n2 + bindings.bindings.size
+    }
+    case e => {
+      throw new Exception("Expression supported for size computing:\n" + e.toString)
+    }
+  }
+
+
 }
 
 

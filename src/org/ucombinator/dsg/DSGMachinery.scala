@@ -9,7 +9,8 @@ import org.ucombinator.util.{StringUtils, FancyOutput}
  *
  * @author ilya
  */
-trait DSGMachinery {self: GCInterface with FancyOutput =>
+trait DSGMachinery {
+  self: GCInterface with FancyOutput =>
 
   /**
    * Abstract components
@@ -153,8 +154,9 @@ trait DSGMachinery {self: GCInterface with FancyOutput =>
      * Let s1 --[+f]--> s2_1 --> .... --> s2_n --[-f]--> s3
      * Then predForPushFrame((s2_i, f)) contains s1
      */
-    private val predForPushFrame: MMap[(S, Frame), Nodes] = new MHashMap
+    private val predStateForPushFrame: MMap[(S, Frame), Nodes] = new MHashMap
     private val nonEpsPreds: MMap[S, Nodes] = new MHashMap
+    private val possibleStackFrames: MMap[S, Set[Frame]] = new MHashMap
 
     ////////////////// Public methods //////////////////
 
@@ -195,49 +197,7 @@ trait DSGMachinery {self: GCInterface with FancyOutput =>
       }
     }
 
-    /**
-     * Necessary for abstract GC
-     *
-     * (REMARK)
-     * [Dyck property exploited]
-     * Compute recursively all possible frames that can be
-     * somewhere in the stack for a state 's'
-     */
-    def getPossibleStackFrames(s: S): Kont = {
-      if (!shouldGC) {
-        // We don't deed it if there is no --gc flag
-        return Nil
-      }
-
-      // initial -- just top frames
-      var workSet: Nodes = Set(s) ++ getEpsPredStates(s)
-
-      // first iteration
-      var frames = workSet.flatMap(s => gets(topFrames, s))
-
-      // get non-eps preds
-      val neps = workSet.flatMap(x => nonEpsPreds.getOrElse(x, Set()))
-      val toProcess = neps ++ neps.flatMap(getEpsPredStates(_))
-      var newWorkSet: Nodes = workSet ++ toProcess
-
-      def iterate(delta: Nodes) {
-        if (!workSet.equals(newWorkSet)) {
-          // compute new frames
-          frames = frames ++ delta.flatMap(s => gets(topFrames, s))
-          // update old working set
-          workSet = newWorkSet
-          // compute new states
-          val neps1 = delta.flatMap(x => nonEpsPreds.getOrElse(x, Set()))
-          val delta1 = neps1 ++ neps1.flatMap(getEpsPredStates(_))
-          newWorkSet = workSet ++ delta1
-
-          iterate(delta1)
-        }
-      }
-
-      iterate(toProcess)
-      frames.toList
-    }
+    def getPossibleStackFrames(s: S) = gets(possibleStackFrames, s).toList
 
     def getEpsNextStates(s: S): Nodes = gets(epsSuccs, s)
 
@@ -262,12 +222,33 @@ trait DSGMachinery {self: GCInterface with FancyOutput =>
       // Add new predecessors and top frames
       val topFramesToAdd = preds.flatMap(x => gets(topFrames, x))
       for (s <- nexts) {
+
+        // update eps-predecessors
         puts(epsPreds, s, preds)
+
+        // update top-frames
         puts(topFrames, s, topFramesToAdd)
+
+        // update immediate non-esp predecessors
         for (f <- gets(topFrames, s1)) {
-          val predForPushForS1 = gets(predForPushFrame, (s1, f))
-          puts(predForPushFrame, (s, f), predForPushForS1)
+          val predForPushForS1 = gets(predStateForPushFrame, (s1, f))
+          puts(predStateForPushFrame, (s, f), predForPushForS1)
         }
+
+        // Update introspective history for GC
+        updatePossibleStackFrames(s)
+      }
+    }
+
+    def updatePossibleStackFrames(s: S) {
+      val possibleAsTop = gets(topFrames, s)
+      puts(possibleStackFrames, s, possibleAsTop)
+      // for all non-eps predecessors of s
+      for (spred <- gets(nonEpsPreds, s) ++ gets(epsPreds, s)) {
+        // see what are their possible stack-frames
+        val newPossibleStackFrames = gets(possibleStackFrames, spred)
+        // add them to possible stack frames of s
+        puts(possibleStackFrames, s, newPossibleStackFrames)
       }
     }
 
@@ -278,8 +259,9 @@ trait DSGMachinery {self: GCInterface with FancyOutput =>
       val nexts = Set(s2) ++ gets(epsSuccs, s2)
       for (s <- nexts) {
         puts(topFrames, s, Set(f))
-        puts(predForPushFrame, (s, f), Set(s1))
+        puts(predStateForPushFrame, (s, f), Set(s1))
         puts(nonEpsPreds, s, Set(s1))
+        updatePossibleStackFrames(s)
       }
     }
 
@@ -287,7 +269,7 @@ trait DSGMachinery {self: GCInterface with FancyOutput =>
      * Update eps-graphs for a new egde s1 --[-f]--> s2
      */
     private def processPop(s1: S, f: Frame, s2: S) {
-      val newEpsPreds = gets(predForPushFrame, (s1, f))
+      val newEpsPreds = gets(predStateForPushFrame, (s1, f))
       for (s <- newEpsPreds) {
         equalize(s, s2)
       }
@@ -308,9 +290,9 @@ trait DSGMachinery {self: GCInterface with FancyOutput =>
 
   private def getStoreSensitiveStates(ss: Set[S]) = ss.filter(isStoreSensitive(_))
 
-  /**************************************************************
-   * Some utility methods
-   ***************************************************************/
+  /** ************************************************************
+    * Some utility methods
+    * **************************************************************/
 
   /**
    * The function exploits the balanced structure of paths in DSG

@@ -53,11 +53,11 @@ trait IPDSMachinery extends StateSpace with PDCFAGarbageCollector {
    *
    * @param q source control state
    * @param k a [shallow] continuation to make a next step passed instead of a full stack
-   * @param frames a set of possible frames in the stack at this state (for Garbage Collection)
+   * @param framesForGC a set of possible frames in the stack at this state (for Garbage Collection)
    * @return a set of paired control states and stack actions
    */
-  def stepIPDS(q: Q, k: List[Frame], frames: List[Frame]): Set[(StackAction[Frame], Q)] = {
-    val newQ: Q = (if (shouldGC) gc(q, frames) else q)
+  def stepIPDS(q: Q, k: List[Frame], framesForGC: List[Frame]): Set[(StackAction[Frame], Q)] = {
+    val newQ: Q = (if (shouldGC) gc(q, framesForGC) else q)
     for {
       (q1, k_new) <- mnext(newQ, k)
       g = decideStackAction(k, k_new)

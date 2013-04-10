@@ -55,7 +55,7 @@ with PDCFAGarbageCollector with IPDSMachinery with DSGMachinery with DSGAnalysis
 
   def canHaveSwitchFrames = false
 
-  def isStoreSensitive(s: ControlState) = true
+  def isStoreSensitive(s: ControlState) = false
 
   def step(q: ControlState, k: Kont, frames: Kont, store: SharedStore) = {
     val result = stepIPDS(q, k, frames)
@@ -85,6 +85,7 @@ with PDCFAGarbageCollector with IPDSMachinery with DSGMachinery with DSGAnalysis
    */
   def runPDCFA(opts: CFAOptions, anast: Term) {
     val sizeExp = ANormalizer.size(anast)
+    val vars = ANormalizer.vars(anast)
 
     val firstTime = (new java.util.Date()).getTime
 
@@ -124,7 +125,7 @@ with PDCFAGarbageCollector with IPDSMachinery with DSGMachinery with DSGAnalysis
     val (allVars, singletons) = computeSingletons(resultDSG.nodes, anast)
     val interrupted = opts.interrupt && resultDSG.nodes.size > opts.interruptAfter
 
-    dumpStatistics(opts, CFAStatistics(delta, sizeExp, allVars.size,
+    dumpStatistics(opts, CFAStatistics(delta, sizeExp, vars,
       singletons.size, resultDSG.nodes.size, resultDSG.edges.size, interrupted))
 
     if (opts.dumpGraph) {

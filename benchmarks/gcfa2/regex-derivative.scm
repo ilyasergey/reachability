@@ -147,23 +147,23 @@
              (display expect)
              (newline))))
 
-(check-expect (d/dc 'baz 'f)
-              #f)
+;(check-expect (d/dc 'baz 'f)
+;              #f)
 
 ;(check-expect (d/dc '(seq foo barn) 'foo)
 ;  'barn)
-;
+
 ;(check-expect (d/dc '(alt (seq foo bar) (seq foo (rep baz))) 'foo)
 ;              '(alt bar (rep baz)))
-;
-;(check-expect (regex-match '(seq foo (rep bar))
-;                           '(foo bar bar bar))
-;              #t)
-;
+
+(check-expect (regex-match '(seq foo (rep bar))
+                           '(foo bar bar bar))
+              #t)
+
 ;(check-expect (regex-match '(seq foo (rep bar))
 ;                           '(foo bar baz bar bar))
 ;              #f)
-;
+
 ;(check-expect (regex-match '(seq foo (rep (alt bar baz)))
 ;                           '(foo bar baz bar bar))
 ;              #t)
