@@ -113,7 +113,7 @@ trait DSGMachinery {
           case Edge(source, _, target) => target
         }
         nodes ++ obtainedStates
-      } else obtainedStates)
+      } else obtainedStates) -- toVisit // important to subtract!
 
       val newEdges = noSwitchesEdges -- ee
 
@@ -126,6 +126,10 @@ trait DSGMachinery {
         ++ newStates.flatMap(s => helper.getEpsNextStates(s))
         // Lemma 2 (store-sensitive)
         ++ getStoreSensitiveStates(ss))
+
+//      println("New states: " + newStates.size)
+//      println("Eps-dependent: " + (newStates.flatMap(s => helper.getEpsNextStates(s))).size)
+//      println("New to visit: " + newToVisit.size)
 
       // S' = ...
       val ss1: Nodes = ss ++ newStates + s0
