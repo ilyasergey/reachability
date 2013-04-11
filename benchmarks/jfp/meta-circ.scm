@@ -280,9 +280,6 @@
 
 ; <letrec-exp> => <let&set!-exp>
 (define (letrec->lets+sets exp)
-; (display "deletrecing: ")
-; (display exp)
-; (newline)
   (if (not (letrec? exp))
       exp
       (let ((bindings (map (lambda (binding)
@@ -382,9 +379,6 @@
 
 ;; Evaluation
 (define (eval exp env)
-  ;(display "evaluating: ")
-  ;(display exp)
-  ;(newline)
   (cond
     ((symbol? exp)    (env-lookup env exp))
     
@@ -471,13 +465,7 @@
 ; eval-begin : begin-exp env -> value
 (define (eval-begin exp env)
   ; DEBUG
-  ;(display 'eval-begin:)
-  ;(display exp)
-  ;(newline)
   (let ((simplified (body->letrec (begin->body exp))))
-    ;(display 'simplified:)
-    ;(display simplified)
-    ;(newline)
     (cond
       ((begin? simplified) (car (reverse (eval* (begin->body exp) env))))
       (else                (eval simplified env)))))
@@ -513,24 +501,14 @@
 
 ; env-lookup : env var -> value
 (define (env-lookup env var)
-  ;DEBUG
-  ;(display 'lookup:)
-  ;(display var)
-  ;(newline)
   (let ((value (env var #f 'unused)))
-    ;(display 'value:)
-    ;(display value)
-    ;(newline)
     value))
 
 ; env-set! : env var value -> void
 (define (env-set! env var value)
-  ;DEBUG
-  ;(display 'set!:)
-  ;(display var)
-  ;(newline)  
   (env var #t value))
-  
+  (env var #t value))
+
 ; env-extend : env var value -> env
 (define (env-extend env var value)
   (lambda (seek-var modify? value!)
@@ -548,14 +526,6 @@
 
 ; empty-env : env
 (define (empty-env var modify? value!)
-  (if modify?
-      (begin (display "error: cannot modify undefined variable: ")
-             (display var)
-             (display " with ")
-             (display value!))
-      (begin (display "error: cannot look up undefined variable: ")
-             (display var)))
-  (newline)
   (error))
 
 ; initial-environment-amap : alist[symbol,value]

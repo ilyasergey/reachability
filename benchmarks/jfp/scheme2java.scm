@@ -465,7 +465,7 @@
 
 (analyze-mutable-variables input-program)
 
-(display (java-compile-program input-program))
+(java-compile-program input-program)
 
 ;; The resulting program requires Value.java to compile.
 

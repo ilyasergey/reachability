@@ -95,11 +95,4 @@
 (define iterations 10)
 (define byte-size 15)
 
-(display "Generating prime...")
-(newline)
-(display (generate-fermat-prime byte-size iterations))
-(display " is prime with at least probability 1 - 1/2^")
-(display iterations)
-(newline)
-(display " if it is not a Carmichael number.")
-(newline)
+(generate-fermat-prime byte-size iterations)

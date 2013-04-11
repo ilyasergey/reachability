@@ -1074,8 +1074,7 @@
 
 ;; Code emission.
 (define (emit line)
-  (display line)
-  (newline))
+  line)
   
 ; c-compile-and-emit : (string -> A) exp -> void
 (define (c-compile-and-emit emit input-program)
