@@ -40,14 +40,14 @@ import scala.collection.immutable.{Set => ImmSet, Map => ImmMap}
 
 /**
 Help methods for terms.
- */
+  */
 object Term {
 
   private var maxLabel: Int = 0
 
   /**
   Allocates a fresh label for a term.
-   */
+    */
   def allocateLabel(): Int = {
     maxLabel += 1
     maxLabel
@@ -59,7 +59,7 @@ object Exp {
 
   /**
   Creates a new let expression only if duplicating the argument could alter the meaning of the program.
-   */
+    */
   def let(exp: Exp)(k: Exp => Exp) = {
     exp match {
       case _: SelfLit => k(exp)
@@ -121,19 +121,19 @@ sealed abstract class Exp extends Ordered[Exp] {
    Execution may result in undefined behavior.
 
    For example, trying to add 3 to "foo" without safety checks results in  undefined behavior.
-   */
+    */
   lazy val isPure: Boolean = !mayMutate && !mayPerformIO && !mayAllocate
 
   /**
   If true, there is no risk of code explosion from duplicating this expression.
-   */
+    */
   def isDuplicable: Boolean;
 
   /**
   If true, execution of this expression will always eventually return to its evaluation context.
 
    Exceptions, continuations and infinite loops can violate this condition.
-   */
+    */
   def mustReturnOrFail: Boolean;
 
   def mustReturnUnspecified: Boolean;
@@ -394,13 +394,26 @@ abstract class Formal {
 
 case class PosFormal(val name: SName) extends Formal {
   override def toString = name.toString
+
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Formal => this.label == x.label
+    case _ => super.equals(obj)
+  }
 }
 
 case class KeywordFormal(val keyword: SKeyword, val name: SName) extends Formal {
   override def toString = keyword + " " + name.toString
+
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Formal => this.label == x.label
+    case _ => super.equals(obj)
+  }
+
 }
 
-case object NumTopExp extends Lit(null){
+case object NumTopExp extends Lit(null) {
   def isDuplicable = false
 
   def mayAllocate = false
@@ -509,14 +522,14 @@ case class Arguments(val args: List[Argument], val rest: Option[Exp]) {
 
   /**
   The set of keywords used at this particular point.
-   */
+    */
   lazy val keywordSet: ImmSet[SKeyword] = ImmSet() ++ (keywords map (_.keyword))
 
   lazy val free: ImmSet[SName] = ImmSet() ++ (args flatMap (_.free))
 
   /**
   All the keywords used anywhere in these arguments.
-   */
+    */
   lazy val keywordsUsed: ImmSet[SKeyword] =
     if (rest.isEmpty) {
       ImmSet() ++ (args flatMap (_.keywords))
@@ -587,6 +600,13 @@ object ExpBody {
 case class ImplicitDef(val value: Exp) extends Def {
   override def toString = value.toString
 
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Def => this.label == x.label
+    case _ => super.equals(obj)
+  }
+
+
   def substitute(map: ImmMap[SName, Exp]): Def = {
     ImplicitDef(value substitute map)
   }
@@ -601,6 +621,13 @@ case class ImplicitDef(val value: Exp) extends Def {
 case class VarDef(val name: SName, val value: Exp) extends Def {
   override def toString = "(define " + name + " " + value.toString + ")"
 
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Def => this.label == x.label
+    case _ => super.equals(obj)
+  }
+
+
   def substitute(map: ImmMap[SName, Exp]): Def = {
     VarDef(name, value substitute (map - name))
   }
@@ -612,6 +639,12 @@ case class VarDef(val name: SName, val value: Exp) extends Def {
 
 case class FunctionDef(val name: SName, val formals: Formals, val body: Body) extends Def {
   override def toString = "(define " + name + " (lambda " + formals + " " + body.toString + "))"
+
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Def => this.label == x.label
+    case _ => super.equals(obj)
+  }
 
   def value = Lambda(formals, body)
 
@@ -627,6 +660,14 @@ case class FunctionDef(val name: SName, val formals: Formals, val body: Body) ex
 
 /* Core expressions. */
 case class Ref(val name: SName) extends Exp {
+
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Def => this.label == x.label
+    case _ => super.equals(obj)
+  }
+
+
   override def toString = name.toString
 
   def substitute(map: ImmMap[SName, Exp]): Exp = {
@@ -658,6 +699,11 @@ case class Ref(val name: SName) extends Exp {
  */
 
 case class Prim(val name: String, val safe: Boolean) extends Exp {
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
   override def toString = name
 
   def substitute(map: ImmMap[SName, Exp]): Exp = this
@@ -729,6 +775,11 @@ case class TypePredicate(val ty: Type) extends Prim("type?", true) {
 
 
 case class CPS(p: Prim) extends Exp {
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
   override def toString = "(cps " + p + ")"
 
   def substitute(map: ImmMap[SName, Exp]): Exp = this
@@ -748,6 +799,11 @@ case class CPS(p: Prim) extends Exp {
 }
 
 case class Unspecified() extends Exp {
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
   override def toString = "'(unspecified)"
 
   override def isUnspecified = true
@@ -770,6 +826,11 @@ case class Unspecified() extends Exp {
 
 
 abstract case class Lit(val sexp: SExp) extends Exp {
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
 
   lazy val mustReturnOrFail = true
   lazy val mustReturnUnspecified = false
@@ -790,10 +851,23 @@ case class SelfLit(val value: SExp) extends Lit(value) {
   def isDuplicable = true
 
   lazy val mayAllocate: Boolean = false
+
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
+
 }
 
 case class QuoteLit(val value: SExp) extends Lit(value) {
   override def toString = "(quote " + value.toString + ")"
+
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
 
   def isDuplicable = value match {
     case _: SSymbol => true
@@ -819,6 +893,13 @@ case class QuoteLit(val value: SExp) extends Lit(value) {
 
 
 case class App(val fun: Exp, val args: Arguments) extends Exp {
+
+  override def hashCode() = label
+
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
   override def toString = "(" + fun + " " + args + ")"
 
   def this(fun: Exp, args: Exp*) =
@@ -872,6 +953,11 @@ case class App(val fun: Exp, val args: Arguments) extends Exp {
 
 
 case class Lambda(val formals: Formals, val body: Body) extends Exp {
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
   override def toString = "(lambda " + formals + " " + body + ")"
 
   def substitute(map: ImmMap[SName, Exp]): Exp = {
@@ -880,7 +966,8 @@ case class Lambda(val formals: Formals, val body: Body) extends Exp {
 
   def isDuplicable = false
 
-  lazy val mustReturnOrFail = true // -- the expression, not the function itself.
+  lazy val mustReturnOrFail = true
+  // -- the expression, not the function itself.
   lazy val mustReturnUnspecified = false
   lazy val mayMutate: Boolean = false
   lazy val mayAllocate: Boolean = true
@@ -900,6 +987,11 @@ case class KLambda(fs: Formals, b: Body) extends Lambda(fs, b)
 
 
 case class If(val condition: Exp, ifTrue: Exp, ifFalse: Exp) extends Exp {
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
   override def toString = "(if " + condition + " " + ifTrue + " " + ifFalse + ")"
 
   def substitute(map: ImmMap[SName, Exp]): Exp = {
@@ -924,6 +1016,11 @@ case class If(val condition: Exp, ifTrue: Exp, ifFalse: Exp) extends Exp {
 
 
 case class SetVar(val name: SName, val value: Exp) extends Exp {
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
   override def toString = "(set! " + name + " " + value + ")"
 
   def substitute(map: ImmMap[SName, Exp]): Exp = {
@@ -953,6 +1050,11 @@ case class SetVar(val name: SName, val value: Exp) extends Exp {
 }
 
 case class Values(val args: Arguments) extends Exp {
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
   override def toString = "(values " + args + ")"
 
   def substitute(map: ImmMap[SName, Exp]): Exp = {
@@ -974,6 +1076,11 @@ case class Values(val args: Arguments) extends Exp {
 }
 
 case class LetValues(formals: List[Formals], values: List[Exp], body: Body) extends Exp {
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
   def substitute(map: ImmMap[SName, Exp]): Exp = {
     throw new Exception("TODO: Code incomplete!")
   }
@@ -996,7 +1103,14 @@ case class LetValues(formals: List[Formals], values: List[Exp], body: Body) exte
 }
 
 case class Begin(body: Body) extends Exp {
+  override def hashCode() = label
+
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
   override def toString = "(begin " + body + ")"
+
 
   def substitute(map: ImmMap[SName, Exp]): Exp = {
     Begin(body substitute map)
@@ -1018,6 +1132,12 @@ case class Begin(body: Body) extends Exp {
 
 
 case class And(val exps: List[Exp]) extends Exp {
+
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
 
   def isDuplicable = false
 
@@ -1045,6 +1165,11 @@ case class And(val exps: List[Exp]) extends Exp {
 
 
 case class Or(val exps: List[Exp]) extends Exp {
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
 
   def isDuplicable = false
 
@@ -1132,6 +1257,11 @@ case class ElseCondClause(val exps: List[Exp]) extends CondClause {
 }
 
 case class Cond(clauses: List[CondClause]) extends Exp {
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
 
   def isDuplicable = false
 
@@ -1208,6 +1338,11 @@ object Bindings {
 
 
 abstract case class LetForm(val bindings: Bindings, val body: Body) extends Exp {
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
   def isDuplicable = false
 
   lazy val mustReturnOrFail: Boolean = false
@@ -1225,6 +1360,14 @@ abstract case class LetForm(val bindings: Bindings, val body: Body) extends Exp 
 }
 
 case class Let(_bindings: Bindings, _body: Body) extends LetForm(_bindings, _body) {
+
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
+
+
   def this(renameEnv: ImmMap[SName, Exp], body: Body) =
     this(new Bindings(renameEnv), body)
 
@@ -1268,6 +1411,13 @@ case class Let(_bindings: Bindings, _body: Body) extends LetForm(_bindings, _bod
 case class LetRec(_bindings: Bindings, _body: Body) extends LetForm(_bindings, _body) {
   override def toString = toString("letrec")
 
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
+
+
   def substitute(map: ImmMap[SName, Exp]): Exp = {
     val bound = ImmSet() ++ bindings.names
     val newMap = map -- bound
@@ -1290,6 +1440,13 @@ case class LetRec(_bindings: Bindings, _body: Body) extends LetForm(_bindings, _
 
 case class LetStar(_bindings: Bindings, _body: Body) extends LetForm(_bindings, _body) {
   override def toString = toString("let*")
+
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
+
 
   def substitute(map: ImmMap[SName, Exp]): Exp =
     throw new Exception("let* not yet substitutable")
@@ -1316,6 +1473,11 @@ case class LetStar(_bindings: Bindings, _body: Body) extends LetForm(_bindings, 
 
 
 case class MakeStruct(t: Type, exps: List[Exp]) extends Exp {
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
   def isDuplicable = false
 
   lazy val mustReturnOrFail = exps forall (_.mustReturnOrFail)
@@ -1336,6 +1498,11 @@ case class MakeStruct(t: Type, exps: List[Exp]) extends Exp {
 
 
 case class StructGet(val base: Exp, val field: SName, val t: Type) extends Exp {
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
 
   def isDuplicable = base.isDuplicable
 
@@ -1357,6 +1524,11 @@ case class StructGet(val base: Exp, val field: SName, val t: Type) extends Exp {
 
 
 case class StructSet(val base: Exp, val field: SName, val t: Type, val value: Exp) extends Exp {
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
 
   def isDuplicable = base.isDuplicable && value.isDuplicable
 
@@ -1381,6 +1553,11 @@ case class StructSet(val base: Exp, val field: SName, val t: Type, val value: Ex
  A closure is as a procedure plus a datum (usually an environment).
  */
 case class Closure(val lam: Exp, val ty: Type, val fields: List[Exp]) extends Exp {
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
   def substitute(map: ImmMap[SName, Exp]): Exp = {
     Closure(lam substitute map, ty, fields map (_ substitute map))
   }
@@ -1401,6 +1578,11 @@ case class Closure(val lam: Exp, val ty: Type, val fields: List[Exp]) extends Ex
 
 
 case class Call(val fun: Exp, val key: SKeyword, val args: Arguments) extends Exp {
+  override def hashCode() = label
+  override def equals(obj: Any) = obj match {
+    case x: Exp => this.label == x.label
+    case _ => super.equals(obj)
+  }
   override def toString = "(call " + key + " " + fun + " " + args + ")"
 
   def this(fun: Exp, key: SKeyword, args: Exp*) =
@@ -1439,7 +1621,7 @@ object Sequence {
 
 
   // Matt: I changed this to direct let bindings:
-  def apply(first : Exp, second : Exp) : Exp =
+  def apply(first: Exp, second: Exp): Exp =
     Let1(SName.gensym("$_"), first, ExpBody(second))
 
   def apply(first: Exp, seconds: List[Exp]): Exp =
@@ -1555,8 +1737,8 @@ object CellGet {
 
 object Let1 {
 
-  def apply(name : SName, value : Exp, body : Body) : Exp = {
-   Let(Bindings(List(Binding(name,value))), body)
+  def apply(name: SName, value: Exp, body: Body): Exp = {
+    Let(Bindings(List(Binding(name, value))), body)
   }
 
   def unapply(exp: Exp): Option[(SName, Exp, Body)] = {
