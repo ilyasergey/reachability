@@ -12,6 +12,8 @@ import org.ucombinator.util.{StringUtils, FancyOutput}
 trait DSGMachinery {
   self: GCInterface with FancyOutput =>
 
+  val halfHour = 60000 * 30
+
   /**
    * Abstract components
    */
@@ -67,12 +69,19 @@ trait DSGMachinery {
     val initial = initState(e)
     val initS = initial._1
 
+
+    val startTime = (new java.util.Date()).getTime
+
     // Compute the LFP(iterateDSG) recursively
     def eval(next: DSG, helper: NewDSGHelper, shouldProceed: Boolean, statesToVisit: Set[S], store: SharedStore):
     (DSG, NewDSGHelper, SharedStore) = {
+
+      val currentTime = (new java.util.Date()).getTime
+
       if (!shouldProceed) {
         (next, helper, store)
-      } else if (interrupt && next.edges.size > interruptAfter) {
+      } else if (interrupt && next.edges.size > interruptAfter
+      || (currentTime - startTime) >= halfHour) {
         (next, helper, store)
       } else {
         val (next2, helper2, goAgain, newToVisit, newStore) = iterateDSG(next, helper, statesToVisit, store)

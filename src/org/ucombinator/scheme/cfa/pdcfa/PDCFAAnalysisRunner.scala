@@ -122,8 +122,8 @@ with PDCFAGarbageCollector with IPDSMachinery with DSGMachinery with DSGAnalysis
     println()
     println("Computing statistics")
     println()
-    val (allVars, singletons) = computeSingletons(resultDSG.nodes, anast)
-    val interrupted = opts.interrupt && resultDSG.nodes.size > opts.interruptAfter
+    val (_, singletons) = computeSingletons(resultDSG.nodes, anast)
+    val interrupted = delta >= 60 * 1000 * 30
 
     dumpStatistics(opts, CFAStatistics(delta, sizeExp, vars,
       singletons.size, resultDSG.nodes.size, resultDSG.edges.size, interrupted))

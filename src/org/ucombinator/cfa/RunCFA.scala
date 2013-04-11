@@ -90,6 +90,7 @@ object RunCFA {
       System.err.println("Please, specify a filename to process")
       println()
       println(helpMessage)
+      return
     }
 
     if (opts.lang == "js") {
