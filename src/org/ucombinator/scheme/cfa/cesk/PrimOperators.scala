@@ -56,8 +56,11 @@ trait PrimOperators {
       /**
        * General
        */
-      case ("eq?", v1 :: v2 :: Nil) => Set(BoolLit(v1 eq v2))
-      case ("equal?", v1 :: v2 :: Nil) => Set(BoolLit(v1 == v2))
+      case ("eq?", v1 :: v2 :: Nil) => if (v1 eq v2) Set(BoolLit(true)) else Set(BoolLit(true), BoolLit(false))
+      case ("equal?", v1 :: v2 :: Nil) => if (v1 == v2) Set(BoolLit(true)) else Set(BoolLit(true), BoolLit(false))
+      case ("char=?", _ :: _ :: Nil) => Set(BoolLit(true), BoolLit(false))
+      case ("eqv?", _ :: _ :: Nil) => Set(BoolLit(true), BoolLit(false))
+
       case ("char?", v1 :: Nil) => Set(BoolLit(true), BoolLit(false))
       case ("symbol?", v1 :: Nil) => Set(BoolLit(true), BoolLit(false))
       case ("null?", v1 :: Nil) => Set(BoolLit(true), BoolLit(false))
@@ -149,10 +152,19 @@ trait PrimOperators {
       case ("pair?", PairLit(v1, v2) :: Nil) => mkSet(BoolLit(true))
       case ("pair?", v :: Nil) => Set(BoolLit(true), BoolLit(false))
 
-      case ("integer?", (_ : AbstractNumLit) :: Nil) => Set(BoolLit(true))
-      case ("integer?", _ :: Nil) => Set(BoolLit(false))
+      case ("list?", PairLit(v1, v2) :: Nil) => mkSet(BoolLit(true))
+      case ("list?", v :: Nil) => Set(BoolLit(true), BoolLit(false))
 
-      case ("boolean?", (_ : BoolLit) :: Nil) => Set(BoolLit(true))
+      case ("integer?" | "number?", (_: AbstractNumLit) :: Nil) => Set(BoolLit(true))
+      case ("integer?" | "number?", _ :: Nil) => Set(BoolLit(false))
+
+      case ("procedure?", Clo(_, _) :: Nil) => Set(BoolLit(true))
+      case ("procedure?", _ :: Nil) => Set(BoolLit(true), BoolLit(false))
+
+      case ("string?", StringLit(_) :: Nil) => Set(BoolLit(true))
+      case ("string?", _ :: Nil) => Set(BoolLit(false))
+
+      case ("boolean?", (_: BoolLit) :: Nil) => Set(BoolLit(true))
       case ("boolean?", _ :: Nil) => Set(BoolLit(false))
 
       case ("car", QuotedLit(x :+: y) :: Nil) => mkSet(QuotedLit(x))
@@ -160,6 +172,24 @@ trait PrimOperators {
 
       case ("car", v :: Nil) => mkSet(BadVal(v, "car"))
       case ("cdr", v :: Nil) => mkSet(BadVal(v, "cdr"))
+
+
+      case ("number->string", (n: NumLit) :: Nil) => mkSet(StringLit(n.n.toString))
+      case ("number->string", NumTop :: Nil) => mkSet(StringLit("NumTop"))
+      case ("number->string", _ :: Nil) => mkSet(StringLit("some-string-from-number"))
+
+      case ("char-alphabetic?", _ :: Nil) => Set(BoolLit(true), BoolLit(false))
+      case ("char-numeric?", _ :: Nil) => Set(BoolLit(true), BoolLit(false))
+
+      case ("string-append", _) => mkSet(StringLit("result-of-appending-strings"))
+      case ("symbol->string", _ :: Nil) => mkSet(StringLit("some-symbol-as-string"))
+      case ("string->symbol", StringLit(s) :: Nil) => mkSet(QuotedLit(SText(s)))
+      case ("string->symbol", v :: Nil) => mkSet(BadVal(v, "string->symbol"))
+      case ("list->string", _ :: Nil) => mkSet(StringLit("some-list-as-string"))
+      case ("string-length", _ :: Nil) => mkSet(NumTop)
+      case ("string-ref", _ :: _ :: Nil) => mkSet(StringLit("some-char"))
+      case ("char->integer", _ :: Nil) => Set(NumTop)
+
 
       /**
        * Terra Incognita

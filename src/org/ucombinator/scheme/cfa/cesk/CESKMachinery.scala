@@ -67,6 +67,7 @@ trait CESKMachinery extends StateSpace with PrimOperators {
     } else e match {
       case lam@Lambda(_, _) => Set(Clo(lam, rho))
       case Ref(name) => lookupStore(s, lookupEnv(rho, name))
+      case Prim(prim, b) => Set(PrimLit(prim, b))
       case Unspecified() => Set(UnspecifiedVal) // return empty set :)
       case QuoteLit(sexp) => Set(QuotedLit(sexp))
       case NumTopExp => Set(NumTop)
@@ -103,6 +104,7 @@ trait CESKMachinery extends StateSpace with PrimOperators {
   def isAtomic(ae: Exp): Boolean = ae match {
     case lam@Lambda(_, _) => true
     case Ref(name) => true
+    case Prim(name, _) => true
     case QuoteLit(_) => true
     case Unspecified() => true
     case SelfLit(SText(str)) => true
@@ -135,6 +137,7 @@ trait CESKMachinery extends StateSpace with PrimOperators {
 
   def embedValueToExp(v: Val): Exp = v match {
     case NumLit(n) => SelfLit(SInt(n))
+    case PrimLit(n, b) => Prim(n, b)
     case BoolLit(b) => SelfLit(SBoolean(b))
     case StringLit(s) => SelfLit(SText(s))
     case QuotedLit(e) => QuoteLit(e)

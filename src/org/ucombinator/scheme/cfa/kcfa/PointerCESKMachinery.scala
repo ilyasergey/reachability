@@ -131,20 +131,24 @@ trait PointerCESKMachinery extends CESKMachinery with FancyOutput {
   def mnext: Conf => Set[Conf] = {
     // Application of lambda or reference
     case c@(PState(App(f@(Lambda(_, _) | Ref(_)), args), rho, s, a), kstore) =>
-      for {
-        Clo(lam@Lambda(Formals(params, _), body), rho1) <- atomicEval(f, rho, s)
 
-        // process lambda parameters
-        paramNames = params.map(_.name)
-        ai = paramNames.map(alloc(_, c)) // allocate addresses
-        rho2 = updateEnv(rho1, paramNames.zip(ai)) // update function env
+      atomicEval(f, rho, s).flatMap[Conf, Set[Conf]]{
+        // f refers to a closure
+        case Clo(lam@Lambda(Formals(params, _), body), rho1) => {
+          val paramNames = params.map(_.name)
+          val ai = paramNames.map(alloc(_, c)) // allocate addresses
+          val rho2 = updateEnv(rho1, paramNames.zip(ai)) // update function env
 
-        arg_vals = args.args.map(ae => atomicEval(ae.exp, rho, s)) // map atomic arguments to values
-        s1 = updateStore(s, ai.zip(arg_vals))
+          val arg_vals = args.args.map(ae => atomicEval(ae.exp, rho, s)) // map atomic arguments to values
+          val s1 = updateStore(s, ai.zip(arg_vals))
 
-        // In A-normal form only one expression in body
-        e = getLambdaBodyInANF(lam)
-      } yield (PState(e, rho2, s1, a), kstore)
+          // In A-normal form only one expression in body
+          val e = getLambdaBodyInANF(lam)
+          mkSet(PState(e, rho2, s1, a), kstore)
+        }
+        // f refers to a stored primitive
+        case p@PrimLit(prim, _) => mnext((PState(App(embedValueToExp(p), args), rho, s, a), kstore))
+      }
 
     /**
      * Special hacky case because of (set!) desugaring
