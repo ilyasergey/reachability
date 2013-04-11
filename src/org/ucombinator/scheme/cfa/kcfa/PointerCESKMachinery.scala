@@ -272,9 +272,9 @@ trait PointerCESKMachinery extends CESKMachinery with FancyOutput {
   /**
    * Kleene iteration of a work set of states
    */
-  def iterateKCFA(workSet: Set[Conf], edges: Set[Edge]): (Set[Conf], Set[(Conf, Conf)]) = {
+  private def iterateKCFA(workSet: Set[Conf], edges: Set[Edge], accumStates: Set[Conf]): (Set[(Conf, Conf)], Set[Conf]) = {
 
-    val newConfsEdges: Set[(Conf, Edge)] = workSet.map((c: Conf) => {
+     val newConfsEdges: Set[(Conf, Edge)] = workSet.map((c: Conf) => {
       val next: Set[Conf] = mnext(c)
       val cleanNext = if (shouldGC) {
         next.map {
@@ -291,26 +291,24 @@ trait PointerCESKMachinery extends CESKMachinery with FancyOutput {
 
     val (newStates, newEdges) = newConfsEdges.unzip
 
-    println(progressPrefix + " " + workSet.size + " states computed so far.")
-
-    val newWorkSet : Set[Conf] = workSet ++ newStates
+    println(progressPrefix + " " + accumStates.size + " states computed so far.")
 
     val collectedEdges : Set[Edge] = edges ++ newEdges
 
-    if (newWorkSet == workSet) {
-      (newWorkSet, collectedEdges)
-    } else if (interrupt && newWorkSet.size > interruptAfter) {
-      (newWorkSet, collectedEdges)
+    if (newStates.subsetOf(accumStates)) {
+      (collectedEdges, accumStates)
+    } else if (interrupt && accumStates.size > interruptAfter) {
+      (collectedEdges, accumStates)
     } else {
-      iterateKCFA(newWorkSet, collectedEdges)
+      iterateKCFA(newStates, collectedEdges, accumStates ++ newStates)
     }
   }
 
   type Edge = (Conf, Conf)
 
-  def evaluateKCFA(e: Exp): (Set[Conf], Set[Edge]) = {
+  def evaluateKCFA(e: Exp): (Set[Edge], Set[Conf]) = {
     val initialStates = Set(initState(e))
-    iterateKCFA(initialStates, Set())
+    iterateKCFA(initialStates, Set(), initialStates)
   }
 
 }

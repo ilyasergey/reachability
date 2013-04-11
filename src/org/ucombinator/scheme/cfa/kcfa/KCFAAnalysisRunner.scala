@@ -52,7 +52,7 @@ with FancyOutput {
 
     val firstTime = (new java.util.Date()).getTime
 
-    val (resultConfs, resultEdges): (Set[Conf], Set[(Conf, Conf)]) =
+    val (resultEdges, resultConfs): (Set[(Conf, Conf)], Set[Conf]) =
       evaluateKCFA(anast)
 
     val secondTime = (new java.util.Date()).getTime
