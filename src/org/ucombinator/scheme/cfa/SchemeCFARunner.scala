@@ -15,9 +15,7 @@ abstract class SchemeCFARunner(opts: CFAOptions) extends AnalysisRunner(opts) wi
     val result: String = if (simplify) {
       map.get(state) match {
         case Some(n) => n.toString
-        case None => {
-          throw new Exception("Index not found for state " + state.toString)
-        }
+        case None => "..."
       }
     } else state match {
       case p@PState(e, rho, st, k) => {

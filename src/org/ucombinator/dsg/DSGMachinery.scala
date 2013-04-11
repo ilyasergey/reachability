@@ -122,7 +122,7 @@ trait DSGMachinery {
           case Edge(source, _, target) => target
         }
         nodes ++ obtainedStates
-      } else obtainedStates) -- toVisit // important to subtract!
+      } else obtainedStates)
 
       val newEdges = noSwitchesEdges -- ee
 
@@ -140,13 +140,13 @@ trait DSGMachinery {
 //      println("Eps-dependent: " + (newStates.flatMap(s => helper.getEpsNextStates(s))).size)
 //      println("New to visit: " + newToVisit.size)
 
+      val shouldProceed = !newEdges.isEmpty || (store != newStore)
+
       // S' = ...
       val ss1: Nodes = ss ++ newStates + s0
 
       // E' = ...
       val ee1 = (ee ++ newEdges)
-      val shouldProceed = !newEdges.subsetOf(ee) || (store != newStore)
-
 
       println(progressPrefix + " Dyck state graph: " + ss1.size + " nodes and " + ee1.size + " edges.")
 

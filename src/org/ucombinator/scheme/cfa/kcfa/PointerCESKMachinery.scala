@@ -148,6 +148,7 @@ trait PointerCESKMachinery extends CESKMachinery with FancyOutput {
         }
         // f refers to a stored primitive
         case p@PrimLit(prim, _) => mnext((PState(App(embedValueToExp(p), args), rho, s, a), kstore))
+        case _ => Set.empty
       }
 
     /**

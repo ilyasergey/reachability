@@ -167,6 +167,7 @@ trait StackCESKMachinery extends CESKMachinery {
     // Ok, folks, that's it!
     case (PFinal(_), Nil) => Set()
 
+    case (ErrorState(_, _), _) => Set()
 
     case c => {
       val c1 = c // for convenient debug

@@ -130,8 +130,7 @@ trait CESKMachinery extends StateSpace with PrimOperators {
   }
 
   def analyseResult(r: Val, rho: Env, s: Store, e: Exp, kptr: KAddr): ControlState = r match {
-    case BadVal(v, c) => ErrorState(e, "Result of application " + e.toString + " is undefined: value " + v.toString +
-      " is evaluated in the context " + c.toString)
+    case BadVal => ErrorState(e, "Bad value in expression " + e)
     case _ => PState(embedValueToExp(r), rho, s, kptr)
   }
 

@@ -94,7 +94,7 @@ trait StateSpace extends PrimOperators {
 
   case object UnspecifiedVal extends Val
 
-  case class BadVal(v: Val, context: String) extends Val
+  case object BadVal extends Val
 
   case class QuotedLit(v: SExp) extends Val
 
@@ -113,13 +113,14 @@ trait StateSpace extends PrimOperators {
   case object NumTop extends AbstractNumLit
 
   def mkNumLit(n: Long): AbstractNumLit = {
-    if (n > 1) {
-      NumTop
-    } else if (n < -1) {
-      NumTop
-    } else {
-      NumLit(n)
-    }
+//    if (n > 2) {
+//      NumTop
+//    } else if (n < -2) {
+//      NumTop
+//    } else {
+//      NumLit(n)
+//    }
+    NumTop
   }
 
   //todo: add more: literals etc

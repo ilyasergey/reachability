@@ -93,8 +93,10 @@ with FancyOutput {
 
 
     val intNodes: Set[Int] = map.values.toSet
-    val intEdges: Set[(Int, Int)] = resultEdges.map {
-      case (c, c1) => (map.apply(c._1), map.apply(c1._1))
+    val intEdges: Set[(Int, Int)] = resultEdges.flatMap[(Int, Int), Set[(Int, Int)]]{
+      case (c, c1) => if (map.isDefinedAt(c._1) && map.isDefinedAt(c1._1)){
+        Set((map.apply(c._1), map.apply(c1._1)))
+      } else Set.empty
     }
 
 
@@ -103,6 +105,10 @@ with FancyOutput {
 
     dumpStatistics(opts, CFAStatistics(delta, sizeExp, allVars.size,
       singletons.size, intNodes.size, intEdges.size, interrupted))
+
+    if (interrupt) {
+      println ("Interrupted after " + resultConfs.size + " states visited")
+    }
 
 
     if (opts.dumpGraph) {

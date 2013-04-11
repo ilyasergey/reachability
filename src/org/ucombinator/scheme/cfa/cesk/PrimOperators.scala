@@ -79,13 +79,15 @@ trait PrimOperators {
         Set(BoolLit(true), BoolLit(false))
 
       case ("=", NumLit(x) :: NumLit(y) :: Nil) => mkSet(BoolLit(x == y))
-      case ("=", x :: y :: Nil) => mkSet(BoolLit(x == y))
+      case ("=", _ :: _ :: Nil) => Set(BoolLit(true), BoolLit(false))
 
 
       /**
        * Boolean operations
        */
       case ("not", BoolLit(b) :: Nil) => mkSet(BoolLit(!b))
+      case ("not", v :: Nil) => mkSet(BadVal)
+
       case ("or", BoolLit(b) :: values)
         if values.forall {
           case BoolLit(_) => true;
@@ -170,8 +172,8 @@ trait PrimOperators {
       case ("car", QuotedLit(x :+: y) :: Nil) => mkSet(QuotedLit(x))
       case ("cdr", QuotedLit(x :+: y) :: Nil) => mkSet(QuotedLit(y))
 
-      case ("car", v :: Nil) => mkSet(BadVal(v, "car"))
-      case ("cdr", v :: Nil) => mkSet(BadVal(v, "cdr"))
+      case ("car", v :: Nil) => mkSet(BadVal)
+      case ("cdr", v :: Nil) => mkSet(BadVal)
 
 
       case ("number->string", (n: NumLit) :: Nil) => mkSet(StringLit(n.n.toString))
@@ -184,7 +186,7 @@ trait PrimOperators {
       case ("string-append", _) => mkSet(StringLit("result-of-appending-strings"))
       case ("symbol->string", _ :: Nil) => mkSet(StringLit("some-symbol-as-string"))
       case ("string->symbol", StringLit(s) :: Nil) => mkSet(QuotedLit(SText(s)))
-      case ("string->symbol", v :: Nil) => mkSet(BadVal(v, "string->symbol"))
+      case ("string->symbol", v :: Nil) => mkSet(BadVal)
       case ("list->string", _ :: Nil) => mkSet(StringLit("some-list-as-string"))
       case ("string-length", _ :: Nil) => mkSet(NumTop)
       case ("string-ref", _ :: _ :: Nil) => mkSet(StringLit("some-char"))
