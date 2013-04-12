@@ -161,8 +161,8 @@ trait StateSpace extends PrimOperators {
 
   def lookupStore(s: Store, a: Addr): Set[Val] = s.get(a) match {
     case Some(x) => x
-    case None => throw new SemanticException("No associated values found for an address " +
-      a.toString + "\nin store\n" + s.toString)
+    case None => Set.empty
+      //throw new SemanticException("No associated values found for an address " + a.toString + "\nin store\n" + s.toString)
   }
 
   def lookupEnv(rho: Env, v: Var): Addr = rho.get(v) match {
