@@ -56,8 +56,8 @@ trait PrimOperators {
       /**
        * General
        */
-      case ("eq?", v1 :: v2 :: Nil) => if (v1 eq v2) Set(BoolLit(true)) else Set(BoolLit(true), BoolLit(false))
-      case ("equal?", v1 :: v2 :: Nil) => if (v1 == v2) Set(BoolLit(true)) else Set(BoolLit(true), BoolLit(false))
+      case ("eq?", v1 :: v2 :: Nil) => Set(BoolLit(v1 eq v2))
+      case ("equal?", v1 :: v2 :: Nil) => Set(BoolLit(v1 == v2))
       case ("char=?", _ :: _ :: Nil) => Set(BoolLit(true), BoolLit(false))
       case ("eqv?", _ :: _ :: Nil) => Set(BoolLit(true), BoolLit(false))
 
@@ -79,8 +79,7 @@ trait PrimOperators {
         Set(BoolLit(true), BoolLit(false))
 
       case ("=", NumLit(x) :: NumLit(y) :: Nil) => mkSet(BoolLit(x == y))
-      case ("=", _ :: _ :: Nil) => Set(BoolLit(true), BoolLit(false))
-
+      case ("=", v1 :: v2 :: Nil) => Set(BoolLit(v1 == v2))
 
       /**
        * Boolean operations
@@ -90,7 +89,7 @@ trait PrimOperators {
 
       case ("or", BoolLit(b) :: values)
         if values.forall {
-          case BoolLit(_) => true;
+          case BoolLit(_) => true
           case _ => false
         } => {
         val result = values.foldLeft(b) {

@@ -1486,7 +1486,7 @@ object ListExp {
 
   def apply(exps: List[Exp]): Exp = {
     exps match {
-      case hd :: tl => new App(Ref(CommonSSymbols.SCons), hd, apply(tl))
+      case hd :: tl => new App(Prim("cons", true), hd, apply(tl))
       case Nil => QuoteLit(SNil())
     }
   }
@@ -1502,7 +1502,7 @@ object ListExp {
 
 object ConsExp {
   def apply(car: Exp, cdr: Exp): Exp = {
-    new App(Ref(CommonSSymbols.SCons), car, cdr)
+    new App(Prim("cons", true), car, cdr)
   }
 }
 

@@ -140,22 +140,20 @@
 
 ;; Tests.
 (define (check-expect check expect)
-  (if (not (equal? check expect))
-      (begin (display "check-expect failed; got: ")
-             (display check)
-             (display "; expected: ")
-             (display expect)
-             (newline))))
+  (equal? check expect))
 
-;(check-expect (regex-match '(seq foo (rep bar))
-;                           '(foo bar bar bar))
-;              #t)
 
-(check-expect (d/dc 'baz 'f)
-              #f)
+;(check-expect (d/dc 'baz 'f)
+;              #f)
 
 ;(check-expect (d/dc '(seq foo barn) 'foo)
 ;  'barn)
+
+;; Used for JFP results
+(check-expect (regex-match '(seq foo (rep bar))
+                           '(foo bar))
+              #f)
+
 
 ;(check-expect (d/dc '(alt (seq foo bar) (seq foo (rep baz))) 'foo)
 ;              '(alt bar (rep baz)))
