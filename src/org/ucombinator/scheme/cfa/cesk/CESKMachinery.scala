@@ -140,9 +140,10 @@ trait CESKMachinery extends StateSpace with PrimOperators {
     case BoolLit(b) => SelfLit(SBoolean(b))
     case StringLit(s) => SelfLit(SText(s))
     case QuotedLit(e) => QuoteLit(e)
+    case PairLit(QuotedLit(s1), QuotedLit(s2)) => SelfLit(:+:(s1, s2))
     case NumTop => NumTopExp
     case UnspecifiedVal => Unspecified()
-    case _ => throw new CESKException("Value conversion to expression not suoorted: " + v)
+    case _ => throw new CESKException("Value conversion to expression not supported: " + v)
   }
 
 

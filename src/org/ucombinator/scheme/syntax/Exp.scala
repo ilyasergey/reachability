@@ -798,14 +798,14 @@ case class QuoteLit(val value: SExp) extends Lit(value) {
   def isDuplicable = value match {
     case _: SSymbol => true
     case _: SInt => true
-    case _: SNil => true
+    case SNil => true
     case _ => false
   }
 
   lazy val mayAllocate: Boolean = value match {
     case _: SSymbol => false
     case _: SInt => false
-    case _: SNil => false
+    case SNil => false
     case _ => true
   }
 
@@ -1487,7 +1487,7 @@ object ListExp {
   def apply(exps: List[Exp]): Exp = {
     exps match {
       case hd :: tl => new App(Prim("cons", true), hd, apply(tl))
-      case Nil => QuoteLit(SNil())
+      case Nil => QuoteLit(SNil)
     }
   }
 

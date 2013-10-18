@@ -58,7 +58,7 @@ class RnRSParser {
       case c: SChar => SelfLit(c)
 
       // Special primitives:
-      case STypeP :+: (ty) :+: SNil() => {
+      case STypeP :+: (ty) :+: SNil => {
         TypePredicate(parseType(ty))
       }
 
@@ -69,7 +69,7 @@ class RnRSParser {
 
       case n: SName => Ref(n)
 
-      case SQuote :+: sexp :+: SNil() => {
+      case SQuote :+: sexp :+: SNil => {
         if (expandQuotes)
           QuoteLit(sexp).expansion
         else
@@ -77,7 +77,7 @@ class RnRSParser {
       }
 
       // Quasi-quote templates:
-      case SQuasiquote :+: qqexp :+: SNil() => {
+      case SQuasiquote :+: qqexp :+: SNil => {
         // println("processing quasiquote: " + qqexp) // DEBUG
         parseQuasiquote(1, qqexp)
       }
@@ -87,15 +87,15 @@ class RnRSParser {
         Lambda(parseFormals(formals), parseBody(body))
 
       // Side effects and sequencing:
-      case SSetBang :+: (name: SName) :+: value :+: SNil() =>
+      case SSetBang :+: (name: SName) :+: value :+: SNil =>
         SetVar(name, parseExp(value))
       case SBegin :+: body =>
         Begin(parseBody(body))
 
       // Conditionals:
-      case SIf :+: condition :+: ifTrue :+: ifFalse :+: SNil() =>
+      case SIf :+: condition :+: ifTrue :+: ifFalse :+: SNil =>
         If(parseExp(condition), parseExp(ifTrue), parseExp(ifFalse))
-      case SIf :+: condition :+: ifTrue :+: SNil() =>
+      case SIf :+: condition :+: ifTrue :+: SNil =>
         If(parseExp(condition), parseExp(ifTrue), Unspecified())
       case SCond :+: clauses =>
         Cond(clauses.toList map parseCondClause)
@@ -115,7 +115,7 @@ class RnRSParser {
       // Structures:
       case SMakeStruct :+: ty :+: values =>
         MakeStruct(parseType(ty), values.toList map parseExp)
-      case SStructGet :+: base :+: (field: SName) :+: ty :+: SNil() =>
+      case SStructGet :+: base :+: (field: SName) :+: ty :+: SNil =>
         StructGet(parseExp(base), field, parseType(ty))
 
       // Applications:
@@ -213,7 +213,7 @@ class RnRSParser {
 
   def parseDef(sexp: SExp): Def = {
     sexp match {
-      case SDefine :+: (name: SName) :+: value :+: SNil() =>
+      case SDefine :+: (name: SName) :+: value :+: SNil =>
         VarDef(name, parseExp(value))
       case SDefine :+: ((name: SName) :+: formals) :+: body =>
         FunctionDef(name, parseFormals(formals), parseBody(body))
@@ -224,20 +224,20 @@ class RnRSParser {
 
   def parseDec(sexp: SExp): Dec = {
     sexp match {
-      case SDefineStruct :+: (name: SName) :+: fields :+: SNil() =>
+      case SDefineStruct :+: (name: SName) :+: fields :+: SNil =>
         TypeDec(name, StrictStruct(fields.toList.asInstanceOf[List[SName]]))
     }
   }
 
   def parseCondClause(sexp: SExp): CondClause = {
     sexp match {
-      case test :+: SNil() =>
+      case test :+: SNil =>
         SelfCondClause(parseExp(test))
 
       case SElse :+: exps =>
         ElseCondClause(exps.toList map parseExp)
 
-      case test :+: SRightArrow :+: proc :+: SNil() =>
+      case test :+: SRightArrow :+: proc :+: SNil =>
         ProcCondClause(parseExp(test), parseExp(proc))
 
       case test :+: exps =>
@@ -296,7 +296,7 @@ object RnRSPrimitives {
     "char->integer",
     "not",
     "length",
-    "cons","car","cdr", "pair?",
+    "cons","car","cdr", "pair?", "append", "list",
     "newline", "display",
     "random",
     "apply",

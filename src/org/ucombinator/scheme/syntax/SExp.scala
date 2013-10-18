@@ -44,7 +44,7 @@ object SExp {
 
   def apply(list: List[SExp]): SExp = list match {
     case hd :: tl => :+:(hd, apply(tl))
-    case Nil => SNil()
+    case Nil => SNil
   }
 
   def apply(list: List[SExp], tombstone: SExp): SExp = list match {
@@ -293,7 +293,7 @@ final case class SName(s: String, version: Int) extends SSymbol(s) with Ordered[
   }
 }
 
-final case class SNil() extends SExp {
+case object SNil extends SExp {
   override def toString = "()"
 
   def toList = List()
@@ -317,7 +317,7 @@ final case class SNil() extends SExp {
 
 final case class :+:(var car: SExp, var cdr: SExp) extends SExp {
   override def toString = this.toDottedList match {
-    case (l, SNil()) => "(" + (l mkString " ") + ")"
+    case (l, SNil) => "(" + (l mkString " ") + ")"
     case (l, end) => "(" + ((l mkString " ") + " . " + end) + ")"
   }
 

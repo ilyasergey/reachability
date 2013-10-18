@@ -299,7 +299,7 @@ class ANormalizer extends ProgramTransformer {
       case letrec@LetRec(_, _) if convertLetRecToLetsAndSets =>
         normalizeExp(letrec.toLetsAndSets)(k)
 
-      case ListExp(Nil) => QuoteLit(SNil())
+      case ListExp(Nil) => QuoteLit(SNil)
       case ListExp(hd :: tl) =>
         normalizeExp(ConsExp(hd, ListExp(tl)))(k)
 

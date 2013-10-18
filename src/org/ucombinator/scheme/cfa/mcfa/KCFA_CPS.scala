@@ -245,7 +245,7 @@ class KCFA_CPS(prog: Program, bEnv0: BEnv, t0: Time, store0: Store, val botD: D)
       // Anything that returns a Boolean:
       case PrimValue(Prim("not" | "equal?" | "eqv?" | "eq?" | "odd?" | "even?" | "char?" | "char=?" | "char-alphabetic?" |
                           "char-numeric?" | "string<?" | "boolean?" | "procedure?" | "string?" |
-                          "symbol?" | "pair?" | "list?" | "null?" | "integer?" | "number?" | "<" |
+                          "symbol?" | "pair?" | "list?" | "null?" | "append" | "list" | "integer?" | "number?" | "<" |
                           "=" | ">" | "<=" | ">=", _)) => {
         val conts = params(SKeyword.from("cc"))
         val primParams = (botD + BooleanValue(true) + BooleanValue(false)) :: (new Parameters())
