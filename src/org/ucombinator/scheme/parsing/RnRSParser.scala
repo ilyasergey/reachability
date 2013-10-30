@@ -40,7 +40,7 @@ An RnRSParser parses macro-expanded programs into an AST.
 
 class RnRSParser {
 
-  import CommonSSymbols._;
+  import CommonSSymbols._
 
 
   var markPrimitivesSafe = false;
@@ -296,7 +296,7 @@ object RnRSPrimitives {
     "char->integer",
     "not",
     "length",
-    "cons","car","cdr", "pair?", "append", "list",
+    "cons","car","cdr", "pair?", "nil",
     "newline", "display",
     "random",
     "apply",

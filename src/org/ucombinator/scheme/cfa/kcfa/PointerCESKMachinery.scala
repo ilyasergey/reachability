@@ -48,16 +48,16 @@ trait PointerCESKMachinery extends CESKMachinery with FancyOutput {
 
   type Addr = (Var, List[Exp])
 
-  /********************************************************************
-   * Continuation sotre
-   ********************************************************************/
+  /** ******************************************************************
+    * Continuation sotre
+    * *******************************************************************/
   type KAddr = (Either[Var, Exp], List[AKont])
 
   type KStore = KAddr :-> Set[AKont]
 
-  /********************************************************************
-   * Continuations with pointers
-   ********************************************************************/
+  /** ******************************************************************
+    * Continuations with pointers
+    * *******************************************************************/
   abstract sealed class AKont
 
   object MT extends AKont
@@ -65,9 +65,9 @@ trait PointerCESKMachinery extends CESKMachinery with FancyOutput {
   case class Pointed(frame: Frame, kptr: KAddr) extends AKont
 
 
-  /********************************************************************
-   * Utility functions
-   ********************************************************************/
+  /** ******************************************************************
+    * Utility functions
+    * *******************************************************************/
   def alloc(v: Var, c: Conf): Addr = c match {
     case (PState(e, _, _, kptr), _) =>
       if (isDummy) {
@@ -125,14 +125,14 @@ trait PointerCESKMachinery extends CESKMachinery with FancyOutput {
 
   class PointerCESKException(s: String) extends CESKException(s)
 
-  /********************************************************************
-   * Main non-deterministic abstract step function
-   ********************************************************************/
+  /** ******************************************************************
+    * Main non-deterministic abstract step function
+    * *******************************************************************/
   def mnext: Conf => Set[Conf] = {
     // Application of lambda or reference
     case c@(PState(App(f@(Lambda(_, _) | Ref(_)), args), rho, s, a), kstore) =>
 
-      atomicEval(f, rho, s).flatMap[Conf, Set[Conf]]{
+      atomicEval(f, rho, s).flatMap[Conf, Set[Conf]] {
         // f refers to a closure
         case Clo(lam@Lambda(Formals(params, _), body), rho1) => {
           val paramNames = params.map(_.name)
@@ -147,7 +147,10 @@ trait PointerCESKMachinery extends CESKMachinery with FancyOutput {
           mkSet(PState(e, rho2, s1, a), kstore)
         }
         // f refers to a stored primitive
-        case p@PrimLit(prim, _) => mnext((PState(App(embedValueToExp(p), args), rho, s, a), kstore))
+        case p@PrimLit(prim, _) => embedValueToExp(p) match {
+          case BadExp => Set.empty
+          case exp => mnext((PState(App(exp, args), rho, s, a), kstore))
+        }
         case _ => Set.empty
       }
 
@@ -181,9 +184,9 @@ trait PointerCESKMachinery extends CESKMachinery with FancyOutput {
     } yield (returnValue(k, value, kstore, c, s))
 
 
-    /******************************************************
-     * Conditional operator
-     ******************************************************/
+    /** ****************************************************
+      * Conditional operator
+      * *****************************************************/
     case (c@PState(b@If(cond, tBranch, eBranch), rho, s, a), kstore) => {
       val frameToAdd = IfFrame(tBranch, eBranch, rho)
       for {
@@ -193,9 +196,9 @@ trait PointerCESKMachinery extends CESKMachinery with FancyOutput {
       } yield (PState(cond, rho, s, b), kstore1)
     }
 
-    /******************************************************
-     * Set!
-     ******************************************************/
+    /** ****************************************************
+      * Set!
+      * *****************************************************/
     case c@(PState(SetVar(v, ae), rho, s, kaddr), kstore)
       // Only atomic values are assigned
       if (isAtomic(ae)) => {
@@ -209,9 +212,9 @@ trait PointerCESKMachinery extends CESKMachinery with FancyOutput {
       }
     }
 
-    /******************************************************
-     * Primitive applications
-     ******************************************************/
+    /** ****************************************************
+      * Primitive applications
+      * *****************************************************/
     // only atomic values or variable are supported in primops
     case c@(PState(app@App(p@Prim(primName, _), args), rho, s, a), kstore) => {
       // map atomic arguments to values (sets)
@@ -233,9 +236,9 @@ trait PointerCESKMachinery extends CESKMachinery with FancyOutput {
       } yield (state, kstore)
     }
 
-    /******************************************************
-     * Final state
-     ******************************************************/
+    /** ****************************************************
+      * Final state
+      * *****************************************************/
     // Ok, folks, that's it!
     case (PFinal(_), _) => Set()
 
@@ -279,7 +282,7 @@ trait PointerCESKMachinery extends CESKMachinery with FancyOutput {
    */
   private def iterateKCFA(workSet: Set[Conf], edges: Set[Edge], accumStates: Set[Conf]): (Set[(Conf, Conf)], Set[Conf]) = {
 
-     val newConfsEdges: Set[(Conf, Edge)] = workSet.map((c: Conf) => {
+    val newConfsEdges: Set[(Conf, Edge)] = workSet.map((c: Conf) => {
       val next: Set[Conf] = mnext(c)
       val cleanNext = if (shouldGC) {
         next.map {
@@ -298,7 +301,7 @@ trait PointerCESKMachinery extends CESKMachinery with FancyOutput {
 
     println(progressPrefix + " " + accumStates.size + " states computed so far.")
 
-    val collectedEdges : Set[Edge] = edges ++ newEdges
+    val collectedEdges: Set[Edge] = edges ++ newEdges
 
     if (newStates.subsetOf(accumStates)) {
       (collectedEdges, accumStates)

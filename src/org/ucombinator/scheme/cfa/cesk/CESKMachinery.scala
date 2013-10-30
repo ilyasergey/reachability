@@ -65,6 +65,9 @@ trait CESKMachinery extends StateSpace with PrimOperators {
     if (!isAtomic(e)) {
       throw new CESKException("Not an atomic expression: " + e.toString)
     } else e match {
+      case BadExp => Set.empty
+      case PairExp(e1, e2) => for (x <- atomicEval(e1, rho, s);
+                                   y <- atomicEval(e2, rho, s)) yield PairLit(x, y)
       case lam@Lambda(_, _) => Set(Clo(lam, rho))
       case Ref(name) => lookupStore(s, lookupEnv(rho, name))
       case Prim(prim, b) => Set(PrimLit(prim, b))
@@ -107,10 +110,12 @@ trait CESKMachinery extends StateSpace with PrimOperators {
     case Prim(name, _) => true
     case QuoteLit(_) => true
     case Unspecified() => true
+    case PairExp(_, _) => true
     case SelfLit(SText(str)) => true
     case SelfLit(SBoolean(b)) => true
     case SelfLit(SInt(i)) => true
     case NumTopExp => true
+    case BadExp => true
     case _ : AbstractNumLit => true
     case (App(Prim(_, _), Arguments(args, _))) => args.forall(arg => isAtomic(arg.exp))
     case _ => false
@@ -140,9 +145,12 @@ trait CESKMachinery extends StateSpace with PrimOperators {
     case BoolLit(b) => SelfLit(SBoolean(b))
     case StringLit(s) => SelfLit(SText(s))
     case QuotedLit(e) => QuoteLit(e)
-    case PairLit(QuotedLit(s1), QuotedLit(s2)) => SelfLit(:+:(s1, s2))
+    case PairLit(v1, v2) => {
+      PairExp(embedValueToExp(v1), embedValueToExp(v2))
+    }
     case NumTop => NumTopExp
     case UnspecifiedVal => Unspecified()
+    case BadVal => BadExp
     case _ => throw new CESKException("Value conversion to expression not supported: " + v)
   }
 
