@@ -1,9 +1,5 @@
-(define (do-something)
-  10)
-
-(define (id y)
-  (do-something)
-  y)
-
-((id (lambda (a) a)) #t)
-((id (lambda (b) b)) #f)
+(let ((id (lambda (x)
+                   (let ((y 10))
+                        x))))
+  (let ((z (id #t)))
+    (id #f)))
