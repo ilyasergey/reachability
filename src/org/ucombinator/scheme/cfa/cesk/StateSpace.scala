@@ -112,14 +112,14 @@ trait StateSpace extends PrimOperators {
   case object NumTop extends AbstractNumLit
 
   def mkNumLit(n: Long): AbstractNumLit = {
-//    if (n > 2) {
-//      NumTop
-//    } else if (n < -2) {
-//      NumTop
-//    } else {
-//      NumLit(n)
-//    }
-    NumTop
+    if (n > 8) {
+      NumTop
+    } else if (n < -8) {
+      NumTop
+    } else {
+      NumLit(n)
+    }
+//    NumTop
   }
 
   //todo: add more: literals etc

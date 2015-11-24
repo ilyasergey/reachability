@@ -406,6 +406,14 @@ case object NumTopExp extends Lit(null){
 }
 
 
+case class PairExp(e1: Exp, e2: Exp) extends Lit(null){
+  def isDuplicable = true
+
+  def mayAllocate = false
+}
+
+
+
 abstract class Argument {
   lazy val label = Term.allocateLabel()
 
@@ -767,6 +775,28 @@ case class Unspecified() extends Exp {
   lazy val mutables: ImmSet[SName] = ImmSet()
 }
 
+case object BadExp extends Exp {
+  override def toString = "'(bad-expr)"
+
+  override def isUnspecified = true
+
+  def substitute(map: ImmMap[SName, Exp]): Exp = this
+
+  def isDuplicable = true
+
+  lazy val mustReturnOrFail = true
+  lazy val mustReturnUnspecified = true
+  lazy val mayMutate: Boolean = false
+  lazy val mayAllocate: Boolean = false
+  lazy val mayPerformIO: Boolean = false
+
+  lazy val free: ImmSet[SName] = ImmSet()
+  lazy val keywords: ImmSet[SKeyword] = ImmSet()
+  lazy val variables: ImmSet[SName] = ImmSet()
+  lazy val mutables: ImmSet[SName] = ImmSet()
+}
+
+
 
 abstract case class Lit(val sexp: SExp) extends Exp {
 
@@ -797,14 +827,14 @@ case class QuoteLit(val value: SExp) extends Lit(value) {
   def isDuplicable = value match {
     case _: SSymbol => true
     case _: SInt => true
-    case _: SNil => true
+    case SNil => true
     case _ => false
   }
 
   lazy val mayAllocate: Boolean = value match {
     case _: SSymbol => false
     case _: SInt => false
-    case _: SNil => false
+    case SNil => false
     case _ => true
   }
 
@@ -1486,7 +1516,7 @@ object ListExp {
   def apply(exps: List[Exp]): Exp = {
     exps match {
       case hd :: tl => new App(Prim("cons", true), hd, apply(tl))
-      case Nil => QuoteLit(SNil())
+      case Nil => QuoteLit(SNil)
     }
   }
 

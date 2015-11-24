@@ -97,7 +97,7 @@ class SExpParser extends RegexParsers {
 
   private def nil: Parser[SExp] =
     (lpar ~ rpar) ^^ {
-      case "(" ~ ")" => SNil()
+      case "(" ~ ")" => SNil
     }
 
   private def sboolean: Parser[SExp] = strue | sfalse

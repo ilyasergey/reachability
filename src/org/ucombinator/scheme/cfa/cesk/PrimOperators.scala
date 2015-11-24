@@ -62,7 +62,16 @@ trait PrimOperators {
 
       case ("char?", v1 :: Nil) => Set(BoolLit(true), BoolLit(false))
       case ("symbol?", v1 :: Nil) => Set(BoolLit(true), BoolLit(false))
-      case ("null?", v1 :: Nil) => Set(BoolLit(true), BoolLit(false))
+      case ("null?", NilVal :: Nil) => {
+        Set(BoolLit(true))
+      }
+      case ("null?", BadVal :: Nil) => {
+        Set(BoolLit(true), BoolLit(false))
+      }
+      case ("null?", v :: Nil) => {
+        Set(BoolLit(false))
+      }
+      case ("nil", Nil) => Set(NilVal)
 
       /**
        * Comparisons
@@ -146,11 +155,23 @@ trait PrimOperators {
        * Lists and pairs
        */
       case ("cons", v1 :: v2 :: Nil) => mkSet(PairLit(v1, v2))
+      case ("list", v1 :: Nil) => mkSet(PairLit(v1, NilVal))
+
       case ("car", PairLit(v1, v2) :: Nil) => mkSet(v1)
       case ("cdr", PairLit(v1, v2) :: Nil) => mkSet(v2)
 
-      case ("pair?", PairLit(v1, v2) :: Nil) => mkSet(BoolLit(true))
-      case ("pair?", v :: Nil) => Set(BoolLit(true), BoolLit(false))
+      // case ("append", v1 :: v2 :: Nil) => mkSet(append(v1, v2))
+
+
+      case ("pair?", PairLit(v1, v2) :: Nil) => {
+        mkSet(BoolLit(true))
+      }
+      case ("pair?", BadVal :: Nil) => {
+        Set(BoolLit(true), BoolLit(false))
+      }
+      case ("pair?", v :: Nil) => {
+        mkSet(BoolLit(false))
+      }
 
       case ("list?", PairLit(v1, v2) :: Nil) => mkSet(BoolLit(true))
       case ("list?", v :: Nil) => Set(BoolLit(true), BoolLit(false))
@@ -170,8 +191,12 @@ trait PrimOperators {
       case ("car", QuotedLit(x :+: y) :: Nil) => mkSet(QuotedLit(x))
       case ("cdr", QuotedLit(x :+: y) :: Nil) => mkSet(QuotedLit(y))
 
-      case ("car", v :: Nil) => mkSet(BadVal)
-      case ("cdr", v :: Nil) => mkSet(BadVal)
+      case ("car", v :: Nil) => {
+        Set.empty
+      }
+      case ("cdr", v :: Nil) => {
+        Set.empty
+      }
 
 
       case ("number->string", (n: NumLit) :: Nil) => mkSet(StringLit(n.n.toString))
@@ -202,7 +227,23 @@ trait PrimOperators {
     }
   }
 
+/*
+  def append(p1: Val, p2: Val): Val = (p1, p2) match {
+    case (NilVal, NilVal) => NilVal
+    case (QuotedLit(s), NilVal) => QuotedLit(s)
+    case (NilVal, QuotedLit(s)) => QuotedLit(s)
+    case (QuotedLit(x :+: y), QuotedLit(s)) => PairLit(QuotedLit(x), append(QuotedLit(y), QuotedLit(s)))
+
+    case (PairLit(h1, t1), NilVal) => PairLit(h1, t1)
+    case (NilVal, PairLit(h1, t1)) => PairLit(h1, t1)
+    case (PairLit(h1, t1), PairLit(h2, t2)) => PairLit(h1, append(t1, PairLit(h2, t2)))
+    case _ => BadVal
+  }
+*/
+
   def mkSet[T](t: T): Set[T] = Set(t)
+
+  val NilVal: Val = QuotedLit(SNil)
 
 }
 

@@ -31,7 +31,6 @@
 
 package org.ucombinator.scheme.transform
 
-import org.ucombinator.scheme.syntax._
 import org.ucombinator.scheme.parsing.{RnRSParser, SExpParser}
 
 object ANormalizerTests {
