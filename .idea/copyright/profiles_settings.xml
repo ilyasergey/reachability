@@ -1,0 +1,7 @@
+<component name="CopyrightManager">
+  <settings default="BSD-Reachability">
+    <module2copyright>
+      <element module="All" copyright="BSD-Reachability" />
+    </module2copyright>
+  </settings>
+</component>

@@ -1,0 +1,23 @@
+<component name="libraryTable">
+  <library name="scala-sdk-2.9.1.final" type="Scala">
+    <properties>
+      <option name="languageLevel" value="Scala_2_9" />
+      <compiler-classpath>
+        <root url="file://$PROJECT_DIR$/lib/scala-compiler.jar" />
+        <root url="file://$PROJECT_DIR$/lib/scala-library.jar" />
+      </compiler-classpath>
+    </properties>
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/scala-library.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/scala-swing.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/scala-compiler.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/scala-dbc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/scalatest-1.7.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/scala-library-src.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/scala-swing-src.jar!/" />
+    </SOURCES>
+  </library>
+</component>

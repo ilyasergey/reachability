@@ -11,9 +11,13 @@ test -- Test suites, run by ScalaTest utility via ant script
 
 build.xml -- Ant script
 
+[UPDATE]
+
+As of November 2015, this project has moved to the BSD licence.
+
 ------------------------------------------------------------------------------------
 
-Use following commands to compile and test the project (in the project root directory):
+Use following commands to compile and test the project via Ant (in the project root directory):
 
 ant all           -- compiles the project from scratch, builds the JAR file and zipped sources
 
@@ -28,6 +32,9 @@ ant jar           -- build an executable jar (Scala SDK included) and puts it in
 ant jar.no.scala  -- build an executable jar (without Scala SDK) and puts it into ./artifacts/
 
 ------------------------------------------------------------------------------------
+You can also compile it via IntelliJ IDEA 15 (with the Scala 2.9 libraries from ./lib).
+------------------------------------------------------------------------------------
+
 
 How to run:
 
