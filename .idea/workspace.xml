@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b6f47358-b5b3-4409-981b-3043c2abbf40" name="ignore" comment="small tweaks">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/LICENCE.md" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/LICENCE.md" afterPath="$PROJECT_DIR$/LICENCE.md" />
     </list>
     <ignored path="reachability.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -160,8 +159,8 @@
       <file leaf-file-name="LICENCE.md" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/LICENCE.md">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.078977935">
-              <caret line="4" column="46" selection-start-line="4" selection-start-column="46" selection-end-line="4" selection-end-column="46" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -1637,8 +1636,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/LICENCE.md">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.078977935">
-          <caret line="4" column="46" selection-start-line="4" selection-start-column="46" selection-end-line="4" selection-end-column="46" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
       </provider>
